@@ -19,7 +19,7 @@ A powerful and secure browser extension for generating random passwords with cus
 
 ## Screenshots
 
-![Main screen](images/preview.png)
+<img src="images/preview.png" alt="Main screen" width="200"/>
 
 ## Why I Created This
 
