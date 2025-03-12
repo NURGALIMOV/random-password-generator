@@ -67,7 +67,7 @@ This extension generates passwords locally within your browser. No passwords are
 
 ```
 chrome-password-generator/
-└── src/
+└── src/ # Install this folder
     ├── background.js
     ├── icons/
     │   ├── icon16.png
@@ -81,7 +81,6 @@ chrome-password-generator/
         ├── popup.css
         ├── popup.html
         └── popup.js
-
 ```
 
 ### Building from Source
