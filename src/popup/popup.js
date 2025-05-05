@@ -23,6 +23,11 @@ document.addEventListener("DOMContentLoaded", async function () {
   const strengthIndicator = document.getElementById("strengthIndicator");
   const strengthText = document.getElementById("strengthText");
 
+  // Theme switcher functionality
+  const themeButton = document.getElementById('themeButton');
+  const themeDropdown = document.getElementById('themeDropdown');
+  const themeOptions = document.querySelectorAll('.theme-option');
+
   async function loadSettings() {
     const settings = await passwordStorage.getSettings();
 
@@ -279,6 +284,73 @@ document.addEventListener("DOMContentLoaded", async function () {
       loadPasswordHistory();
     }
   });
+
+  // Function to apply theme
+  async function applyTheme(theme) {
+    if (theme === 'system') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+    
+    // Update active state in dropdown
+    themeOptions.forEach(option => {
+      option.classList.toggle('active', option.dataset.theme === theme);
+    });
+
+    // Update main button icon
+    const mainButtonIcon = themeButton.querySelector('svg');
+    const selectedOption = Array.from(themeOptions).find(option => option.dataset.theme === theme);
+    if (selectedOption) {
+      const selectedIcon = selectedOption.querySelector('svg').cloneNode(true);
+      mainButtonIcon.replaceWith(selectedIcon);
+    }
+  }
+
+  // Function to handle theme change
+  async function handleThemeChange(theme) {
+    await passwordStorage.saveTheme(theme);
+    await applyTheme(theme);
+  }
+
+  // Initialize theme
+  async function initializeTheme() {
+    const savedTheme = await passwordStorage.getTheme();
+    await applyTheme(savedTheme);
+  }
+
+  // Toggle dropdown
+  themeButton.addEventListener('click', () => {
+    themeDropdown.classList.toggle('show');
+  });
+
+  // Handle theme option clicks
+  themeOptions.forEach(option => {
+    option.addEventListener('click', async () => {
+      const theme = option.dataset.theme;
+      await handleThemeChange(theme);
+      themeDropdown.classList.remove('show');
+    });
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.theme-switcher')) {
+      themeDropdown.classList.remove('show');
+    }
+  });
+
+  // Listen for system theme changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', async (e) => {
+    const savedTheme = await passwordStorage.getTheme();
+    if (savedTheme === 'system') {
+      await applyTheme('system');
+    }
+  });
+
+  // Initialize theme on load
+  initializeTheme();
 
   await loadSettings();
   generatePassword();

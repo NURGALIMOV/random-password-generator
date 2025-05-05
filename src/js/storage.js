@@ -5,6 +5,7 @@ class PasswordStorage {
   constructor() {
     this.HISTORY_KEY = "password_history";
     this.SETTINGS_KEY = "password_settings";
+    this.THEME_KEY = "theme";
     this.MAX_HISTORY = 50;
   }
 
@@ -110,6 +111,35 @@ class PasswordStorage {
     } catch (error) {
       console.error("Error retrieving settings:", error);
       return this._getDefaultSettings();
+    }
+  }
+
+  /**
+   * Save theme preference
+   * 
+   * @param {string} theme - Theme to save ('light', 'dark', or 'system')
+   * @returns {Promise<void>}
+   */
+  async saveTheme(theme) {
+    try {
+      await chrome.storage.local.set({ [this.THEME_KEY]: theme });
+    } catch (error) {
+      console.error("Error saving theme:", error);
+    }
+  }
+
+  /**
+   * Get saved theme preference
+   * 
+   * @returns {Promise<string>} Theme preference
+   */
+  async getTheme() {
+    try {
+      const data = await chrome.storage.local.get(this.THEME_KEY);
+      return data[this.THEME_KEY] || 'system';
+    } catch (error) {
+      console.error("Error retrieving theme:", error);
+      return 'system';
     }
   }
 
