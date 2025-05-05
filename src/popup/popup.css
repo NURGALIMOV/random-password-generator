@@ -106,6 +106,7 @@ body {
 header {
   text-align: center;
   margin-bottom: var(--space-xl);
+  margin-top: var(--space-3xl);
 }
 
 h1 {
