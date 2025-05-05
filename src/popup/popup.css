@@ -631,3 +631,20 @@ input:checked + .toggle-slider:before {
   background-color: var(--color-primary-light);
   color: var(--color-primary);
 }
+
+[data-theme="dark"] #passwordOutput {
+  color: #ffffff;
+  font-weight: 500;
+  background-color: #2d2d2d;
+  border-color: #404040;
+}
+
+[data-theme="dark"] #passwordOutput:focus {
+  border-color: #5c7cfa;
+  box-shadow: 0 0 0 3px rgba(92, 124, 250, 0.2);
+}
+
+[data-theme="dark"] .history-password {
+  color: #ffffff;
+  font-weight: 500;
+}
