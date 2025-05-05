@@ -34,14 +34,27 @@
   --space-xxl: 18px;
   --space-3xl: 24px;
 
-  --font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  --font-family-mono: "Courier New", monospace;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
 
-  --font-size-xs: 0.9rem;
-  --font-size-sm: 0.95rem;
+  --font-size-xs: 0.875rem;
+  --font-size-sm: 0.9375rem;
   --font-size-md: 1rem;
-  --font-size-lg: 1.5rem;
+  --font-size-lg: 1.25rem;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.025em;
 
   --radius-sm: 3px;
   --radius-md: 4px;
@@ -88,10 +101,14 @@
 
 body {
   font-family: var(--font-family-base);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
   color: var(--color-text);
   background-color: var(--color-bg);
   margin: 0;
   padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
@@ -111,13 +128,18 @@ header {
 
 h1 {
   font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
   color: var(--color-primary);
   margin-bottom: var(--space-sm);
 }
 
 .subtitle {
-  color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
 }
 
 .password-display {
@@ -133,6 +155,8 @@ h1 {
   border-radius: var(--radius-xl);
   font-family: var(--font-family-mono);
   font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-wide);
   background-color: var(--color-bg-secondary);
   transition: all var(--transition-normal);
 }
@@ -233,7 +257,8 @@ h1 {
   border-radius: var(--radius-xl);
   padding: var(--space-lg);
   cursor: pointer;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-wide);
   font-size: var(--font-size-sm);
   transition: all var(--transition-fast);
   margin-bottom: var(--space-xl);
@@ -267,7 +292,8 @@ h1 {
   border: none;
   padding: var(--space-lg) 0;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-tight);
   color: var(--color-text-secondary);
   display: flex;
   align-items: center;
@@ -316,7 +342,9 @@ h1 {
 }
 
 .options-group h3 {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-tight);
   margin-bottom: var(--space-lg);
   color: #4f4f4f;
 }
@@ -330,6 +358,8 @@ h1 {
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
 }
 
 .length-option label {
@@ -471,6 +501,9 @@ input:checked + .toggle-slider:before {
 
 .history-password {
   font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-wide);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -531,6 +564,8 @@ input:checked + .toggle-slider:before {
   padding: 10px 20px;
   border-radius: var(--radius-xl);
   font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-wide);
   box-shadow: var(--shadow-lg);
   opacity: 0;
   transition: transform var(--transition-normal),
@@ -553,7 +588,8 @@ input:checked + .toggle-slider:before {
   padding: 10px 20px;
   border-radius: var(--radius-xl);
   font-size: var(--font-size-xs);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-wide);
   box-shadow: var(--shadow-lg);
   opacity: 0;
   transition: transform var(--transition-normal),
