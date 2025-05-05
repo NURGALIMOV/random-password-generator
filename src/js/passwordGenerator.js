@@ -39,8 +39,8 @@ class PasswordGenerator {
       throw new Error("At least one character set must be selected");
     }
 
-    if (length < 4 || length > 64) {
-      throw new Error("Password length must be between 4 and 64 characters");
+    if (length < 1 || length > 64) {
+      throw new Error("Password length must be between 1 and 64 characters");
     }
 
     let availableChars = "";
