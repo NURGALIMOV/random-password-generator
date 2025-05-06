@@ -455,6 +455,12 @@ input:checked + .toggle-slider:before {
   margin-bottom: var(--space-lg);
 }
 
+.history-header .history-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+#toggleHistoryVisibilityButton,
 #clearHistoryButton {
   background-color: transparent;
   border: none;
@@ -469,8 +475,13 @@ input:checked + .toggle-slider:before {
   transition: all var(--transition-fast);
 }
 
+#toggleHistoryVisibilityButton:hover,
 #clearHistoryButton:hover {
   background-color: var(--color-gray-200);
+  color: var(--color-primary);
+}
+
+#clearHistoryButton:hover {
   color: var(--color-error);
 }
 
@@ -499,17 +510,16 @@ input:checked + .toggle-slider:before {
 }
 
 .history-password {
-  font-family: var(--font-family-mono);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
   padding-right: var(--space-lg);
-  -webkit-text-security: disc;
+  font-family: var(--font-family-mono);
 }
 
-.history-password.visible {
-  -webkit-text-security: none;
+.history-password.masked {
+  -webkit-text-security: disc;
 }
 
 .history-actions {
@@ -518,8 +528,7 @@ input:checked + .toggle-slider:before {
 }
 
 .history-copy,
-.history-delete,
-.history-toggle {
+.history-delete {
   background-color: transparent;
   border: none;
   cursor: pointer;
@@ -532,8 +541,7 @@ input:checked + .toggle-slider:before {
   transition: all var(--transition-fast);
 }
 
-.history-copy:hover,
-.history-toggle:hover {
+.history-copy:hover {
   background-color: var(--color-primary-light);
   color: var(--color-primary);
 }
