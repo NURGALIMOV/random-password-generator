@@ -516,6 +516,39 @@ input:checked + .toggle-slider:before {
   flex: 1;
   padding-right: var(--space-lg);
   font-family: var(--font-family-mono);
+  position: relative;
+}
+
+.history-password[title] {
+  cursor: help;
+}
+
+.history-password[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+  z-index: 1000;
+  margin-bottom: var(--space-sm);
+  box-shadow: var(--shadow-md);
+}
+
+.history-password[title]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--color-primary);
+  margin-bottom: -6px;
 }
 
 .history-password.masked {
@@ -594,7 +627,7 @@ input:checked + .toggle-slider:before {
   top: var(--space-3xl);
   left: 50%;
   transform: translateX(-50%) translateY(-100px);
-  background-color: var(--color-success);
+  background-color: var(--color-primary);
   color: var(--color-white);
   padding: 10px 20px;
   border-radius: var(--radius-xl);
@@ -614,6 +647,36 @@ input:checked + .toggle-slider:before {
   opacity: 1;
 }
 
+.confirm-buttons {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+  justify-content: center;
+}
+
+.confirm-yes,
+.confirm-no {
+  background-color: var(--color-white);
+  color: var(--color-primary);
+  border: none;
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-fast);
+}
+
+.confirm-yes:hover {
+  background-color: var(--color-success);
+  color: var(--color-white);
+}
+
+.confirm-no:hover {
+  background-color: var(--color-error);
+  color: var(--color-white);
+}
+
 /* Theme Switcher */
 .theme-switcher {
   position: absolute;
@@ -625,7 +688,7 @@ input:checked + .toggle-slider:before {
 .theme-button {
   background: none;
   border: none;
-  color: var(--color-text);
+  color: var(--color-primary);
   cursor: pointer;
   padding: var(--space-sm);
   display: flex;
@@ -668,6 +731,7 @@ input:checked + .toggle-slider:before {
   transition: background-color var(--transition-fast);
   width: 40px;
   height: 40px;
+  color: var(--color-primary);
 }
 
 .theme-option:hover {

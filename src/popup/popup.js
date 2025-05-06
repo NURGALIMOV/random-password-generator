@@ -304,11 +304,53 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   });
 
-  clearHistoryButton.addEventListener("click", async () => {
-    if (confirm("Are you sure you want to clear all password history?")) {
+  function showConfirmDialog(message, onConfirm) {
+    const existingToast = document.querySelector(".success-message");
+    if (existingToast) {
+      existingToast.remove();
+    }
+
+    const toast = document.createElement("div");
+    toast.className = "success-message";
+    toast.innerHTML = `
+      <div>${message}</div>
+      <div class="confirm-buttons">
+        <button class="confirm-yes">Yes</button>
+        <button class="confirm-no">No</button>
+      </div>
+    `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add("show");
+    }, 10);
+
+    const yesButton = toast.querySelector('.confirm-yes');
+    const noButton = toast.querySelector('.confirm-no');
+
+    yesButton.addEventListener('click', () => {
+      toast.classList.remove("show");
+      setTimeout(() => {
+        toast.remove();
+        onConfirm();
+      }, 300);
+    });
+
+    noButton.addEventListener('click', () => {
+      toast.classList.remove("show");
+      setTimeout(() => {
+        toast.remove();
+      }, 300);
+    });
+  }
+
+  clearHistoryButton.addEventListener("click", () => {
+    showConfirmDialog("Are you sure you want to clear all password history?", async () => {
       await passwordStorage.clearHistory();
       loadPasswordHistory();
-    }
+      showToast("Password history cleared");
+    });
   });
 
   // Function to apply theme
@@ -390,6 +432,7 @@ function createHistoryItem(password) {
   const passwordSpan = document.createElement('span');
   passwordSpan.className = 'history-password';
   passwordSpan.textContent = password;
+  passwordSpan.title = password;
   
   const actions = document.createElement('div');
   actions.className = 'history-actions';
