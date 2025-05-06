@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Random Password Generator",
   "version": "1.0",
-  "description": "Generate secure random passwords with customizable options",
+  "description": "Secure Random Password Generator: instantly creates strong 4‑64 character passwords. One‑click copy generate password.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",

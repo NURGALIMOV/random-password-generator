@@ -168,7 +168,7 @@ class PasswordStorage {
       special: true,
       excludeSimilar: false,
       excludeAmbiguous: false,
-      minLength: 1,
+      minLength: 4,
       maxLength: 64
     };
   }
