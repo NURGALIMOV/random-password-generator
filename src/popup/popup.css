@@ -34,9 +34,10 @@
   --space-xxl: 18px;
   --space-3xl: 24px;
 
-  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  --font-family-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  --font-family-base:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
+    "Open Sans", "Helvetica Neue", sans-serif;
+  --font-family-mono: "JetBrains Mono", "Fira Code", "Courier New", monospace;
 
   --font-size-xs: 0.875rem;
   --font-size-sm: 0.9375rem;
@@ -208,7 +209,8 @@ h1 {
 #strengthIndicator {
   height: 100%;
   width: 0;
-  transition: width var(--transition-normal),
+  transition:
+    width var(--transition-normal),
     background-color var(--transition-normal);
 }
 
@@ -541,7 +543,7 @@ input:checked + .toggle-slider:before {
 }
 
 .history-password[title]:hover::before {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 100%;
   left: 50%;
@@ -612,7 +614,8 @@ input:checked + .toggle-slider:before {
   letter-spacing: var(--letter-spacing-wide);
   box-shadow: var(--shadow-lg);
   opacity: 0;
-  transition: transform var(--transition-normal),
+  transition:
+    transform var(--transition-normal),
     opacity var(--transition-normal);
   z-index: 1000;
 }
@@ -636,7 +639,8 @@ input:checked + .toggle-slider:before {
   letter-spacing: var(--letter-spacing-wide);
   box-shadow: var(--shadow-lg);
   opacity: 0;
-  transition: transform var(--transition-normal),
+  transition:
+    transform var(--transition-normal),
     opacity var(--transition-normal);
   z-index: 1000;
   text-align: center;
@@ -680,58 +684,63 @@ input:checked + .toggle-slider:before {
 /* Theme Switcher */
 .theme-switcher {
   position: absolute;
-  top: var(--space-xl);
+  top: 2px;
   right: var(--space-xl);
   z-index: 1000;
+  display: flex;
+  align-items: center;
 }
 
-.theme-button {
+.theme-options-row {
+  display: flex;
+  gap: var(--space-sm);
+  background: transparent;
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  padding: var(--space-xs) var(--space-sm);
+  align-items: center;
+  border: none;
+}
+
+#langSelect {
+  margin-left: 8px;
+  background: var(--color-bg);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary-light);
+  border-radius: var(--radius-md);
+  padding: 2px 10px;
+  font-size: 13px;
+  height: 28px;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+#langSelect:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+#langSelect option {
+  color: var(--color-primary);
+  background: var(--color-bg);
+}
+
+.theme-option {
   background: none;
   border: none;
   color: var(--color-primary);
   cursor: pointer;
-  padding: var(--space-sm);
+  padding: 1px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-md);
   transition: background-color var(--transition-fast);
+  width: 22px;
+  height: 22px;
 }
 
-.theme-button:hover {
-  background-color: var(--color-primary-light);
-}
-
-.theme-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  padding: var(--space-sm);
-  min-width: 40px;
-  display: none;
-  z-index: 1000;
-  margin-top: var(--space-sm);
-}
-
-.theme-dropdown.show {
-  display: block;
-}
-
-.theme-option {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-md);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: background-color var(--transition-fast);
-  width: 40px;
-  height: 40px;
-  color: var(--color-primary);
+.theme-option svg {
+  width: 14px !important;
+  height: 14px !important;
 }
 
 .theme-option:hover {
@@ -741,6 +750,12 @@ input:checked + .toggle-slider:before {
 .theme-option.active {
   background-color: var(--color-primary-light);
   color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+/* Удаляем стили выпадающего меню */
+.theme-button, .theme-dropdown, .theme-dropdown.show {
+  display: none !important;
 }
 
 [data-theme="dark"] #passwordOutput {
@@ -759,3 +774,4 @@ input:checked + .toggle-slider:before {
   color: #ffffff;
   font-weight: 500;
 }
+

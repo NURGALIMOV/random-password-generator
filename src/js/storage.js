@@ -49,7 +49,19 @@ class PasswordStorage {
   async getHistory() {
     try {
       const data = await chrome.storage.local.get(this.HISTORY_KEY);
-      return data[this.HISTORY_KEY] || [];
+      let history = data[this.HISTORY_KEY] || [];
+      let changed = false;
+      history = history.map(item => {
+        if (!item.id) {
+          changed = true;
+          return { ...item, id: this._generateId() };
+        }
+        return item;
+      });
+      if (changed) {
+        await chrome.storage.local.set({ [this.HISTORY_KEY]: history });
+      }
+      return history;
     } catch (error) {
       console.error("Error retrieving history:", error);
       return [];
@@ -116,7 +128,7 @@ class PasswordStorage {
 
   /**
    * Save theme preference
-   * 
+   *
    * @param {string} theme - Theme to save ('light', 'dark', or 'system')
    * @returns {Promise<void>}
    */
@@ -130,16 +142,16 @@ class PasswordStorage {
 
   /**
    * Get saved theme preference
-   * 
+   *
    * @returns {Promise<string>} Theme preference
    */
   async getTheme() {
     try {
       const data = await chrome.storage.local.get(this.THEME_KEY);
-      return data[this.THEME_KEY] || 'system';
+      return data[this.THEME_KEY] || "system";
     } catch (error) {
       console.error("Error retrieving theme:", error);
-      return 'system';
+      return "system";
     }
   }
 
@@ -169,9 +181,9 @@ class PasswordStorage {
       excludeSimilar: false,
       excludeAmbiguous: false,
       minLength: 4,
-      maxLength: 64
+      maxLength: 64,
     };
   }
 }
 
-window.PasswordStorage = PasswordStorage;
+export default PasswordStorage;

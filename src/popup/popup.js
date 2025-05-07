@@ -1,3 +1,14 @@
+import PasswordGenerator from "../js/passwordGenerator.js";
+import PasswordStorage from "../js/storage.js";
+import { showToast, createHistoryItem } from "./ui.js";
+import { applyTheme, handleThemeChange, initializeTheme } from "./theme.js";
+import { loadPasswordHistory, invalidateHistoryCache } from "./history.js";
+import { initEventHandlers } from "./events.js";
+import { TOAST_MESSAGES } from "./constants.js";
+import { copyToClipboard } from "./helpers.js";
+import { t, setLang, getCurrentLang } from "./i18n.js";
+import { logEvent, logError } from "./logger.js";
+
 /**
  * UI Control for Password Generator Extension
  */
@@ -24,59 +35,57 @@ document.addEventListener("DOMContentLoaded", async function () {
   const strengthText = document.getElementById("strengthText");
 
   // Theme switcher functionality
-  const themeButton = document.getElementById('themeButton');
-  const themeDropdown = document.getElementById('themeDropdown');
-  const themeOptions = document.querySelectorAll('.theme-option');
+  const themeOptions = document.querySelectorAll(".theme-options-row .theme-option");
 
   // Password visibility toggle
-  const togglePasswordButton = document.getElementById('togglePasswordButton');
-  const eyeIcon = togglePasswordButton.querySelector('.eye-icon');
-  const eyeOffIcon = togglePasswordButton.querySelector('.eye-off-icon');
+  const togglePasswordButton = document.getElementById("togglePasswordButton");
+  const eyeIcon = togglePasswordButton.querySelector(".eye-icon");
+  const eyeOffIcon = togglePasswordButton.querySelector(".eye-off-icon");
 
-  togglePasswordButton.addEventListener('click', () => {
-    const type = passwordOutput.getAttribute('type') === 'password' ? 'text' : 'password';
-    passwordOutput.setAttribute('type', type);
-    
+  togglePasswordButton.addEventListener("click", () => {
+    const type = passwordOutput.getAttribute("type") === "password" ? "text" : "password";
+    passwordOutput.setAttribute("type", type);
+
     // Toggle icons
-    eyeIcon.style.display = type === 'password' ? 'block' : 'none';
-    eyeOffIcon.style.display = type === 'password' ? 'none' : 'block';
+    eyeIcon.style.display = type === "password" ? "block" : "none";
+    eyeOffIcon.style.display = type === "password" ? "none" : "block";
   });
 
-  const toggleHistoryVisibilityButton = document.getElementById('toggleHistoryVisibilityButton');
-  const historyEyeIcon = toggleHistoryVisibilityButton.querySelector('.eye-off-icon');
-  const historyEyeOffIcon = toggleHistoryVisibilityButton.querySelector('.eye-icon');
+  const toggleHistoryVisibilityButton = document.getElementById("toggleHistoryVisibilityButton");
+  const historyEyeIcon = toggleHistoryVisibilityButton.querySelector(".eye-off-icon");
+  const historyEyeOffIcon = toggleHistoryVisibilityButton.querySelector(".eye-icon");
 
   let isHistoryVisible = true;
 
   // Load saved visibility state
-  async function loadVisibilityState() {
+  async function loadVisibilityState(passwordStorage) {
     const settings = await passwordStorage.getSettings();
     isHistoryVisible = settings.historyVisible !== false; // default to true if not set
-    
+
     // Update icons
-    historyEyeIcon.style.display = isHistoryVisible ? 'block' : 'none';
-    historyEyeOffIcon.style.display = isHistoryVisible ? 'none' : 'block';
+    historyEyeIcon.style.display = isHistoryVisible ? "block" : "none";
+    historyEyeOffIcon.style.display = isHistoryVisible ? "none" : "block";
   }
 
   // Apply visibility state to passwords
-  function applyVisibilityState() {
-    const historyPasswords = document.querySelectorAll('.history-password');
-    historyPasswords.forEach(password => {
+  function applyVisibilityState(isHistoryVisible) {
+    const historyPasswords = document.querySelectorAll(".history-password");
+    historyPasswords.forEach((password) => {
       if (isHistoryVisible) {
-        password.classList.remove('masked');
+        password.classList.remove("masked");
       } else {
-        password.classList.add('masked');
+        password.classList.add("masked");
       }
     });
   }
 
-  toggleHistoryVisibilityButton.addEventListener('click', async () => {
+  toggleHistoryVisibilityButton.addEventListener("click", async () => {
     isHistoryVisible = !isHistoryVisible;
-    applyVisibilityState();
+    applyVisibilityState(isHistoryVisible);
 
     // Toggle icons - show crossed eye when password is visible
-    historyEyeIcon.style.display = isHistoryVisible ? 'block' : 'none';
-    historyEyeOffIcon.style.display = isHistoryVisible ? 'none' : 'block';
+    historyEyeIcon.style.display = isHistoryVisible ? "block" : "none";
+    historyEyeOffIcon.style.display = isHistoryVisible ? "none" : "block";
 
     // Save visibility state
     const settings = await passwordStorage.getSettings();
@@ -85,7 +94,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   });
 
   // Load visibility state on startup
-  await loadVisibilityState();
+  await loadVisibilityState(passwordStorage);
 
   async function loadSettings() {
     const settings = await passwordStorage.getSettings();
@@ -129,7 +138,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     };
   }
 
-  function generatePassword() {
+  async function generatePassword() {
     try {
       if (
         !lowercaseCheckbox.checked &&
@@ -137,7 +146,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         !numbersCheckbox.checked &&
         !specialCheckbox.checked
       ) {
-        showToast("Please select at least one character type");
+        showToast(t("selectCharType") || TOAST_MESSAGES.pleaseSelectAtLeastOneCharacterType);
         return;
       }
 
@@ -147,14 +156,17 @@ document.addEventListener("DOMContentLoaded", async function () {
       passwordOutput.value = newPassword;
       updateStrengthMeter(newPassword);
 
-      passwordStorage.savePassword(newPassword);
+      await passwordStorage.savePassword(newPassword);
 
       const historyTab = document.getElementById("history");
       if (historyTab.classList.contains("active")) {
-        loadPasswordHistory();
+        invalidateHistoryCache();
+        loadPasswordHistory(passwordStorage, historyList, createHistoryItem, (v) =>
+          applyVisibilityState(isHistoryVisible),
+        );
       }
     } catch (error) {
-      showToast(error.message);
+      showToast(t("error") || error.message);
     }
   }
 
@@ -165,7 +177,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (!password) {
       strengthIndicator.style.width = "0%";
       strengthIndicator.style.backgroundColor = "#ddd";
-      strengthText.textContent = "None";
+      strengthText.textContent = t("none") || "None";
       return;
     }
 
@@ -188,68 +200,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     strengthText.textContent = strength.label;
   }
 
-  /**
-   * Load password history and display in UI
-   */
-  async function loadPasswordHistory() {
-    const history = await passwordStorage.getHistory();
-
-    historyList.innerHTML = "";
-
-    if (history.length === 0) {
-      const emptyState = document.createElement("div");
-      emptyState.className = "empty-state";
-      emptyState.textContent = "No password history yet";
-      historyList.appendChild(emptyState);
-      return;
-    }
-
-    history.forEach((item) => {
-      const historyItem = createHistoryItem(item.password);
-      historyList.appendChild(historyItem);
-    });
-
-    // Apply visibility state after history is loaded
-    applyVisibilityState();
-  }
-
-  function copyToClipboard(text) {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        showToast("Password copied to clipboard");
-      })
-      .catch((err) => {
-        console.error("Could not copy text: ", err);
-        showToast("Failed to copy password");
-      });
-  }
-
-  function showToast(message) {
-    const existingToast = document.querySelector(".success-message");
-    if (existingToast) {
-      existingToast.remove();
-    }
-
-    const toast = document.createElement("div");
-    toast.className = "success-message";
-    toast.textContent = message;
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.classList.add("show");
-    }, 10);
-
-    setTimeout(() => {
-      toast.classList.remove("show");
-
-      setTimeout(() => {
-        toast.remove();
-      }, 300);
-    }, 2000);
-  }
-
   function switchTab(targetTab) {
     tabButtons.forEach((button) => {
       if (button.dataset.tab === targetTab) {
@@ -264,7 +214,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         content.classList.add("active");
 
         if (targetTab === "history") {
-          loadPasswordHistory();
+          loadPasswordHistory(passwordStorage, historyList, createHistoryItem, (v) =>
+            applyVisibilityState(isHistoryVisible),
+          );
         }
       } else {
         content.classList.remove("active");
@@ -315,8 +267,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     toast.innerHTML = `
       <div>${message}</div>
       <div class="confirm-buttons">
-        <button class="confirm-yes">Yes</button>
-        <button class="confirm-no">No</button>
+        <button class="confirm-yes">${t("yes") || "Yes"}</button>
+        <button class="confirm-no">${t("no") || "No"}</button>
       </div>
     `;
 
@@ -326,10 +278,10 @@ document.addEventListener("DOMContentLoaded", async function () {
       toast.classList.add("show");
     }, 10);
 
-    const yesButton = toast.querySelector('.confirm-yes');
-    const noButton = toast.querySelector('.confirm-no');
+    const yesButton = toast.querySelector(".confirm-yes");
+    const noButton = toast.querySelector(".confirm-no");
 
-    yesButton.addEventListener('click', () => {
+    yesButton.addEventListener("click", () => {
       toast.classList.remove("show");
       setTimeout(() => {
         toast.remove();
@@ -337,7 +289,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       }, 300);
     });
 
-    noButton.addEventListener('click', () => {
+    noButton.addEventListener("click", () => {
       toast.classList.remove("show");
       setTimeout(() => {
         toast.remove();
@@ -345,123 +297,196 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   }
 
-  clearHistoryButton.addEventListener("click", () => {
-    showConfirmDialog("Are you sure you want to clear all password history?", async () => {
+  clearHistoryButton.addEventListener("click", async () => {
+    showConfirmDialog(t("clearHistoryConfirm"), async () => {
       await passwordStorage.clearHistory();
-      loadPasswordHistory();
-      showToast("Password history cleared");
+      invalidateHistoryCache();
+      await loadPasswordHistory(passwordStorage, historyList, createHistoryItem, (v) =>
+        applyVisibilityState(isHistoryVisible),
+      );
+      showToast(t("historyCleared"));
     });
   });
 
-  // Function to apply theme
-  async function applyTheme(theme) {
-    if (theme === 'system') {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-    } else {
-      document.documentElement.setAttribute('data-theme', theme);
-    }
-    
-    // Update active state in dropdown
-    themeOptions.forEach(option => {
-      option.classList.toggle('active', option.dataset.theme === theme);
-    });
-
-    // Update main button icon
-    const mainButtonIcon = themeButton.querySelector('svg');
-    const selectedOption = Array.from(themeOptions).find(option => option.dataset.theme === theme);
-    if (selectedOption) {
-      const selectedIcon = selectedOption.querySelector('svg').cloneNode(true);
-      mainButtonIcon.replaceWith(selectedIcon);
-    }
-  }
-
-  // Function to handle theme change
-  async function handleThemeChange(theme) {
-    await passwordStorage.saveTheme(theme);
-    await applyTheme(theme);
-  }
-
-  // Initialize theme
-  async function initializeTheme() {
-    const savedTheme = await passwordStorage.getTheme();
-    await applyTheme(savedTheme);
-  }
-
-  // Toggle dropdown
-  themeButton.addEventListener('click', () => {
-    themeDropdown.classList.toggle('show');
-  });
-
-  // Handle theme option clicks
-  themeOptions.forEach(option => {
-    option.addEventListener('click', async () => {
+  // Обработка кликов по кнопкам тем
+  themeOptions.forEach((option) => {
+    option.addEventListener("click", async () => {
       const theme = option.dataset.theme;
-      await handleThemeChange(theme);
-      themeDropdown.classList.remove('show');
+      await handleThemeChange(theme, passwordStorage, null, themeOptions);
     });
-  });
-
-  // Close dropdown when clicking outside
-  document.addEventListener('click', (event) => {
-    if (!event.target.closest('.theme-switcher')) {
-      themeDropdown.classList.remove('show');
-    }
   });
 
   // Listen for system theme changes
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', async (e) => {
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", async (e) => {
     const savedTheme = await passwordStorage.getTheme();
-    if (savedTheme === 'system') {
-      await applyTheme('system');
+    if (savedTheme === "system") {
+      await applyTheme("system", null, themeOptions);
     }
   });
 
   // Initialize theme on load
-  initializeTheme();
+  initializeTheme(passwordStorage, null, themeOptions);
 
   await loadSettings();
   generatePassword();
-});
 
-// Function to create history item
-function createHistoryItem(password) {
-  const item = document.createElement('div');
-  item.className = 'history-item';
-  
-  const passwordSpan = document.createElement('span');
-  passwordSpan.className = 'history-password';
-  passwordSpan.textContent = password;
-  passwordSpan.title = password;
-  
-  const actions = document.createElement('div');
-  actions.className = 'history-actions';
-  
-  const copyButton = document.createElement('button');
-  copyButton.className = 'history-copy';
-  copyButton.title = 'Copy password';
-  copyButton.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-    </svg>
-  `;
-  
-  const deleteButton = document.createElement('button');
-  deleteButton.className = 'history-delete';
-  deleteButton.title = 'Delete password';
-  deleteButton.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="3 6 5 6 21 6"></polyline>
-      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-    </svg>
-  `;
-  
-  actions.appendChild(copyButton);
-  actions.appendChild(deleteButton);
-  
-  item.appendChild(passwordSpan);
-  item.appendChild(actions);
-  
-  return item;
-}
+  // Call initEventHandlers after all dependencies are loaded
+  initEventHandlers({
+    generateButton,
+    generatePassword,
+    copyButton,
+    passwordOutput,
+    showToast,
+    passwordLengthInput,
+    lengthValue,
+    saveSettings,
+    checkboxes,
+    tabButtons,
+    switchTab,
+    clearHistoryButton,
+    showConfirmDialog,
+    passwordStorage,
+    historyList,
+    createHistoryItem,
+    applyVisibilityState,
+    isHistoryVisible,
+    loadPasswordHistory,
+  });
+
+  // Делегирование событий для истории паролей
+  historyList.addEventListener("click", async (e) => {
+    const itemEl = e.target.closest(".history-item");
+    if (!itemEl) return;
+    const id = itemEl.dataset.id;
+    const passwordSpan = itemEl.querySelector(".history-password");
+    const password = passwordSpan ? passwordSpan.textContent : "";
+
+    if (e.target.closest(".history-copy")) {
+      try {
+        const ok = await copyToClipboard(password);
+        showToast(ok ? t("passwordCopied") : t("passwordCopyFailed"));
+        logEvent("password_copied", { length: password.length });
+        // Copy message
+        const copyMsg = document.getElementById("copyMessage");
+        if (copyMsg) copyMsg.textContent = t("passwordCopied") || "Password copied to clipboard!";
+      } catch (err) {
+        showToast(t("passwordCopyFailed"));
+        logError(err, "copy_password");
+      }
+    }
+
+    if (e.target.closest(".history-delete")) {
+      showConfirmDialog(t("deleteConfirm"), async () => {
+        try {
+          await passwordStorage.deletePassword(id);
+          invalidateHistoryCache();
+          showToast(t("passwordDeleted"));
+          logEvent("password_deleted", { id });
+          loadPasswordHistory(passwordStorage, historyList, createHistoryItem, () => applyVisibilityState(isHistoryVisible));
+        } catch (err) {
+          showToast(t("deleteFailed") || "Failed to delete password");
+          logError(err, "delete_password");
+        }
+      });
+    }
+  });
+
+  // Универсальная локализация всех элементов
+  function localizeAll() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (key && t(key)) el.textContent = t(key);
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      if (key && t(key)) el.setAttribute('placeholder', t(key));
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+      const key = el.getAttribute('data-i18n-title');
+      if (key && t(key)) el.setAttribute('title', t(key));
+    });
+  }
+
+  // Локализуем всё при загрузке
+  localizeAll();
+  updateStrengthMeter(passwordOutput.value);
+
+  const langSelect = document.getElementById("langSelect");
+  const initialLang = getCurrentLang();
+  setLang(initialLang);
+  if (langSelect) {
+    langSelect.value = initialLang;
+    langSelect.addEventListener("change", (e) => {
+      setLang(e.target.value);
+      localizeAll();
+      updateStrengthMeter(passwordOutput.value);
+      // Перерисовать все тексты на UI/UX
+      document.querySelector("header h1").textContent = t("appTitle") || "Random Password Generator";
+      document.querySelector(".subtitle").textContent = t("subtitle") || "Generate secure passwords instantly";
+      // Вкладки
+      const tabButtons = document.querySelectorAll(".tab-button");
+      if (tabButtons[0]) tabButtons[0].lastChild.textContent = t("settingsTab") || "Settings";
+      if (tabButtons[1]) tabButtons[1].lastChild.textContent = t("historyTab") || "History";
+      // Кнопка генерации
+      const genBtn = document.getElementById("generateButton");
+      if (genBtn) genBtn.textContent = t("generateBtn") || "Generate New Password";
+      // Плейсхолдер поля пароля
+      const passOut = document.getElementById("passwordOutput");
+      if (passOut) passOut.placeholder = t("passwordPlaceholder") || "Your password will appear here";
+      // Кнопка очистки истории
+      const clearBtn = document.getElementById("clearHistoryButton");
+      if (clearBtn) clearBtn.lastChild.textContent = t("clearAll") || "Clear All";
+      // Заголовок истории
+      const histTitle = document.querySelector(".history-header h3");
+      if (histTitle) histTitle.textContent = t("recentPasswords") || "Recent Passwords";
+      // Пустое состояние истории
+      const emptyState = document.querySelector(".empty-state p");
+      if (emptyState) emptyState.textContent = t("noHistory") || "No password history yet";
+      // Переводим значение длины пароля
+      if (lengthValue) lengthValue.textContent = passwordLengthInput.value;
+      // Переводим подписи для чекбоксов (on/off)
+      [
+        { id: "lowercase", label: "lowercase" },
+        { id: "uppercase", label: "uppercase" },
+        { id: "numbers", label: "numbers" },
+        { id: "special", label: "special" },
+        { id: "excludeSimilar", label: "excludeSimilar" },
+        { id: "excludeAmbiguous", label: "excludeAmbiguous" },
+      ].forEach(({ id, label }) => {
+        const el = document.getElementById(id);
+        if (el) {
+          const parent = el.closest("label");
+          if (parent) {
+            const span = parent.querySelector("span");
+            if (span) span.textContent = t(label);
+          }
+        }
+      });
+      loadPasswordHistory(passwordStorage, historyList, createHistoryItem, applyVisibilityState);
+      // Переводим заголовок группы длины пароля
+      const lengthGroupLabel = document.querySelector('.length-option label span');
+      if (lengthGroupLabel) lengthGroupLabel.textContent = t('passwordLength');
+      // Переводим заголовок группы Character Types
+      const charTypesGroup = document.querySelectorAll('.options-group h3')[0];
+      if (charTypesGroup) charTypesGroup.textContent = t('charTypes');
+      // Переводим заголовок группы Exclusions
+      const exclusionsGroup = document.querySelectorAll('.options-group h3')[1];
+      if (exclusionsGroup) exclusionsGroup.textContent = t('exclusions');
+      // Переводим заголовок Password Strength
+      const strengthLabel = document.querySelector('[data-i18n="passwordStrength"]');
+      if (strengthLabel) strengthLabel.textContent = t('passwordStrength');
+      // Перерисовать label силы пароля
+      updateStrengthMeter(passwordOutput.value);
+    });
+  }
+
+  // Lazy loading для всех внутренних модулей
+  async function lazyLoad(modulePath) {
+    return (await import(modulePath)).default;
+  }
+  // Пример использования:
+  // const PasswordGenerator = await lazyLoad("../js/passwordGenerator.js");
+  // const PasswordStorage = await lazyLoad("../js/storage.js");
+  // ... и так далее
+  // В реальном коде можно заменить прямые импорты на lazyLoad при необходимости
+});

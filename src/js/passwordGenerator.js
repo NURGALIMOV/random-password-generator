@@ -1,6 +1,8 @@
 /**
  * Module for generating random passwords with configurable options
  */
+import { t } from "../popup/i18n.js";
+
 class PasswordGenerator {
   constructor() {
     this.lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
@@ -75,10 +77,7 @@ class PasswordGenerator {
     if (excludeAmbiguous) {
       for (const char of this.ambiguousChars) {
         const escapedChar = char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        availableChars = availableChars.replace(
-          new RegExp(escapedChar, "g"),
-          "",
-        );
+        availableChars = availableChars.replace(new RegExp(escapedChar, "g"), "");
       }
     }
 
@@ -115,9 +114,7 @@ class PasswordGenerator {
     const hasNumber = /\d/.test(password);
     const hasSpecial = /[^a-zA-Z0-9]/.test(password);
 
-    const typesCount = [hasLower, hasUpper, hasNumber, hasSpecial].filter(
-      Boolean,
-    ).length;
+    const typesCount = [hasLower, hasUpper, hasNumber, hasSpecial].filter(Boolean).length;
     score += typesCount * 10;
 
     if (hasLower && hasUpper) score += 5;
@@ -145,23 +142,13 @@ class PasswordGenerator {
       const c2 = password.charCodeAt(i + 1);
       const c3 = password.charCodeAt(i + 2);
 
-      if (
-        (c1 + 1 === c2 && c2 + 1 === c3) ||
-        (c1 - 1 === c2 && c2 - 1 === c3)
-      ) {
+      if ((c1 + 1 === c2 && c2 + 1 === c3) || (c1 - 1 === c2 && c2 - 1 === c3)) {
         sequenceCount++;
       }
     }
     score -= sequenceCount * 3;
 
-    const commonWords = [
-      "password",
-      "123456",
-      "qwerty",
-      "admin",
-      "welcome",
-      "letmein",
-    ];
+    const commonWords = ["password", "123456", "qwerty", "admin", "welcome", "letmein"];
     for (const word of commonWords) {
       if (password.toLowerCase().includes(word)) {
         score -= 10;
@@ -172,11 +159,11 @@ class PasswordGenerator {
     score = Math.max(0, Math.min(score, 100));
 
     let label;
-    if (score <= 40) label = "Very Weak";
-    else if (score < 50) label = "Weak";
-    else if (score < 65) label = "Medium";
-    else if (score < 80) label = "Strong";
-    else label = "Very Strong";
+    if (score <= 40) label = t("veryWeak");
+    else if (score < 50) label = t("weak");
+    else if (score < 65) label = t("medium");
+    else if (score < 80) label = t("strong");
+    else label = t("veryStrong");
 
     return { score, label };
   }
@@ -219,4 +206,4 @@ class PasswordGenerator {
   }
 }
 
-window.PasswordGenerator = PasswordGenerator;
+export default PasswordGenerator;
