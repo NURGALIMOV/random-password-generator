@@ -23,6 +23,70 @@ document.addEventListener("DOMContentLoaded", async function () {
   const strengthIndicator = document.getElementById("strengthIndicator");
   const strengthText = document.getElementById("strengthText");
 
+  // Theme switcher functionality
+  const themeButton = document.getElementById('themeButton');
+  const themeDropdown = document.getElementById('themeDropdown');
+  const themeOptions = document.querySelectorAll('.theme-option');
+
+  // Password visibility toggle
+  const togglePasswordButton = document.getElementById('togglePasswordButton');
+  const eyeIcon = togglePasswordButton.querySelector('.eye-icon');
+  const eyeOffIcon = togglePasswordButton.querySelector('.eye-off-icon');
+
+  togglePasswordButton.addEventListener('click', () => {
+    const type = passwordOutput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordOutput.setAttribute('type', type);
+    
+    // Toggle icons
+    eyeIcon.style.display = type === 'password' ? 'block' : 'none';
+    eyeOffIcon.style.display = type === 'password' ? 'none' : 'block';
+  });
+
+  const toggleHistoryVisibilityButton = document.getElementById('toggleHistoryVisibilityButton');
+  const historyEyeIcon = toggleHistoryVisibilityButton.querySelector('.eye-off-icon');
+  const historyEyeOffIcon = toggleHistoryVisibilityButton.querySelector('.eye-icon');
+
+  let isHistoryVisible = true;
+
+  // Load saved visibility state
+  async function loadVisibilityState() {
+    const settings = await passwordStorage.getSettings();
+    isHistoryVisible = settings.historyVisible !== false; // default to true if not set
+    
+    // Update icons
+    historyEyeIcon.style.display = isHistoryVisible ? 'block' : 'none';
+    historyEyeOffIcon.style.display = isHistoryVisible ? 'none' : 'block';
+  }
+
+  // Apply visibility state to passwords
+  function applyVisibilityState() {
+    const historyPasswords = document.querySelectorAll('.history-password');
+    historyPasswords.forEach(password => {
+      if (isHistoryVisible) {
+        password.classList.remove('masked');
+      } else {
+        password.classList.add('masked');
+      }
+    });
+  }
+
+  toggleHistoryVisibilityButton.addEventListener('click', async () => {
+    isHistoryVisible = !isHistoryVisible;
+    applyVisibilityState();
+
+    // Toggle icons - show crossed eye when password is visible
+    historyEyeIcon.style.display = isHistoryVisible ? 'block' : 'none';
+    historyEyeOffIcon.style.display = isHistoryVisible ? 'none' : 'block';
+
+    // Save visibility state
+    const settings = await passwordStorage.getSettings();
+    settings.historyVisible = isHistoryVisible;
+    await passwordStorage.saveSettings(settings);
+  });
+
+  // Load visibility state on startup
+  await loadVisibilityState();
+
   async function loadSettings() {
     const settings = await passwordStorage.getSettings();
 
@@ -141,45 +205,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     history.forEach((item) => {
-      const historyItem = document.createElement("div");
-      historyItem.className = "history-item";
-
-      const passwordText = document.createElement("div");
-      passwordText.className = "history-password";
-      passwordText.textContent = item.password;
-
-      const actions = document.createElement("div");
-      actions.className = "history-actions";
-
-      const copyBtn = document.createElement("button");
-      copyBtn.className = "history-copy";
-      copyBtn.title = "Copy";
-      copyBtn.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "history-delete";
-      deleteBtn.title = "Delete";
-      deleteBtn.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
-
-      copyBtn.addEventListener("click", () => {
-        copyToClipboard(item.password);
-      });
-
-      deleteBtn.addEventListener("click", async () => {
-        await passwordStorage.deletePassword(item.id);
-        loadPasswordHistory();
-      });
-
-      actions.appendChild(copyBtn);
-      actions.appendChild(deleteBtn);
-
-      historyItem.appendChild(passwordText);
-      historyItem.appendChild(actions);
-
+      const historyItem = createHistoryItem(item.password);
       historyList.appendChild(historyItem);
     });
+
+    // Apply visibility state after history is loaded
+    applyVisibilityState();
   }
 
   function copyToClipboard(text) {
@@ -273,13 +304,164 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   });
 
-  clearHistoryButton.addEventListener("click", async () => {
-    if (confirm("Are you sure you want to clear all password history?")) {
+  function showConfirmDialog(message, onConfirm) {
+    const existingToast = document.querySelector(".success-message");
+    if (existingToast) {
+      existingToast.remove();
+    }
+
+    const toast = document.createElement("div");
+    toast.className = "success-message";
+    toast.innerHTML = `
+      <div>${message}</div>
+      <div class="confirm-buttons">
+        <button class="confirm-yes">Yes</button>
+        <button class="confirm-no">No</button>
+      </div>
+    `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add("show");
+    }, 10);
+
+    const yesButton = toast.querySelector('.confirm-yes');
+    const noButton = toast.querySelector('.confirm-no');
+
+    yesButton.addEventListener('click', () => {
+      toast.classList.remove("show");
+      setTimeout(() => {
+        toast.remove();
+        onConfirm();
+      }, 300);
+    });
+
+    noButton.addEventListener('click', () => {
+      toast.classList.remove("show");
+      setTimeout(() => {
+        toast.remove();
+      }, 300);
+    });
+  }
+
+  clearHistoryButton.addEventListener("click", () => {
+    showConfirmDialog("Are you sure you want to clear all password history?", async () => {
       await passwordStorage.clearHistory();
       loadPasswordHistory();
+      showToast("Password history cleared");
+    });
+  });
+
+  // Function to apply theme
+  async function applyTheme(theme) {
+    if (theme === 'system') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+    
+    // Update active state in dropdown
+    themeOptions.forEach(option => {
+      option.classList.toggle('active', option.dataset.theme === theme);
+    });
+
+    // Update main button icon
+    const mainButtonIcon = themeButton.querySelector('svg');
+    const selectedOption = Array.from(themeOptions).find(option => option.dataset.theme === theme);
+    if (selectedOption) {
+      const selectedIcon = selectedOption.querySelector('svg').cloneNode(true);
+      mainButtonIcon.replaceWith(selectedIcon);
+    }
+  }
+
+  // Function to handle theme change
+  async function handleThemeChange(theme) {
+    await passwordStorage.saveTheme(theme);
+    await applyTheme(theme);
+  }
+
+  // Initialize theme
+  async function initializeTheme() {
+    const savedTheme = await passwordStorage.getTheme();
+    await applyTheme(savedTheme);
+  }
+
+  // Toggle dropdown
+  themeButton.addEventListener('click', () => {
+    themeDropdown.classList.toggle('show');
+  });
+
+  // Handle theme option clicks
+  themeOptions.forEach(option => {
+    option.addEventListener('click', async () => {
+      const theme = option.dataset.theme;
+      await handleThemeChange(theme);
+      themeDropdown.classList.remove('show');
+    });
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.theme-switcher')) {
+      themeDropdown.classList.remove('show');
     }
   });
+
+  // Listen for system theme changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', async (e) => {
+    const savedTheme = await passwordStorage.getTheme();
+    if (savedTheme === 'system') {
+      await applyTheme('system');
+    }
+  });
+
+  // Initialize theme on load
+  initializeTheme();
 
   await loadSettings();
   generatePassword();
 });
+
+// Function to create history item
+function createHistoryItem(password) {
+  const item = document.createElement('div');
+  item.className = 'history-item';
+  
+  const passwordSpan = document.createElement('span');
+  passwordSpan.className = 'history-password';
+  passwordSpan.textContent = password;
+  passwordSpan.title = password;
+  
+  const actions = document.createElement('div');
+  actions.className = 'history-actions';
+  
+  const copyButton = document.createElement('button');
+  copyButton.className = 'history-copy';
+  copyButton.title = 'Copy password';
+  copyButton.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </svg>
+  `;
+  
+  const deleteButton = document.createElement('button');
+  deleteButton.className = 'history-delete';
+  deleteButton.title = 'Delete password';
+  deleteButton.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    </svg>
+  `;
+  
+  actions.appendChild(copyButton);
+  actions.appendChild(deleteButton);
+  
+  item.appendChild(passwordSpan);
+  item.appendChild(actions);
+  
+  return item;
+}
