@@ -1,0 +1,30 @@
+{
+  "name": "random-password-generator",
+  "version": "1.0.0",
+  "description": "A powerful and secure browser extension for generating random passwords with customizable settings.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --mode production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NURGALIMOV/random-password-generator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NURGALIMOV/random-password-generator/issues"
+  },
+  "homepage": "https://github.com/NURGALIMOV/random-password-generator#readme",
+  "devDependencies": {
+    "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^13.0.0",
+    "css-minimizer-webpack-plugin": "^7.0.2",
+    "html-webpack-plugin": "^5.6.3",
+    "terser-webpack-plugin": "^5.3.14",
+    "webpack": "^5.99.8",
+    "webpack-cli": "^6.0.1"
+  }
+}

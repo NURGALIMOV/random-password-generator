@@ -1,6 +1,11 @@
 /**
  * Module for managing password history and settings
  */
+import { generateId } from "../popup/helpers.js";
+
+/**
+ * Класс для управления историей паролей и настройками
+ */
 class PasswordStorage {
   constructor() {
     this.HISTORY_KEY = "password_history";
@@ -10,9 +15,8 @@ class PasswordStorage {
   }
 
   /**
-   * Save password to history
-   *
-   * @param {string} password - Password to save
+   * Сохраняет пароль в истории
+   * @param {string} password - Пароль для сохранения
    * @returns {Promise<void>}
    */
   async savePassword(password) {
@@ -23,7 +27,7 @@ class PasswordStorage {
 
       if (!isDuplicate) {
         const newEntry = {
-          id: this._generateId(),
+          id: generateId(),
           password,
           timestamp: Date.now(),
         };
@@ -42,14 +46,25 @@ class PasswordStorage {
   }
 
   /**
-   * Get password history
-   *
-   * @returns {Promise<Array>} Array of password history objects
+   * Получает историю паролей
+   * @returns {Promise<Array>} Массив объектов истории
    */
   async getHistory() {
     try {
       const data = await chrome.storage.local.get(this.HISTORY_KEY);
-      return data[this.HISTORY_KEY] || [];
+      let history = data[this.HISTORY_KEY] || [];
+      let changed = false;
+      history = history.map(item => {
+        if (!item.id) {
+          changed = true;
+          return { ...item, id: generateId() };
+        }
+        return item;
+      });
+      if (changed) {
+        await chrome.storage.local.set({ [this.HISTORY_KEY]: history });
+      }
+      return history;
     } catch (error) {
       console.error("Error retrieving history:", error);
       return [];
@@ -57,9 +72,8 @@ class PasswordStorage {
   }
 
   /**
-   * Delete one password from history by ID
-   *
-   * @param {string} id - ID of password to delete
+   * Удаляет пароль из истории по ID
+   * @param {string} id - ID пароля
    * @returns {Promise<void>}
    */
   async deletePassword(id) {
@@ -73,8 +87,7 @@ class PasswordStorage {
   }
 
   /**
-   * Clear all password history
-   *
+   * Очищает всю историю паролей
    * @returns {Promise<void>}
    */
   async clearHistory() {
@@ -86,9 +99,8 @@ class PasswordStorage {
   }
 
   /**
-   * Save password generator settings
-   *
-   * @param {Object} settings - Settings to save
+   * Сохраняет настройки генератора паролей
+   * @param {Object} settings - Настройки
    * @returns {Promise<void>}
    */
   async saveSettings(settings) {
@@ -100,9 +112,8 @@ class PasswordStorage {
   }
 
   /**
-   * Get saved password generator settings
-   *
-   * @returns {Promise<Object>} Settings object
+   * Получает сохранённые настройки генератора паролей
+   * @returns {Promise<Object>} Объект настроек
    */
   async getSettings() {
     try {
@@ -115,9 +126,8 @@ class PasswordStorage {
   }
 
   /**
-   * Save theme preference
-   * 
-   * @param {string} theme - Theme to save ('light', 'dark', or 'system')
+   * Сохраняет тему
+   * @param {string} theme - Тема ('light', 'dark', 'system')
    * @returns {Promise<void>}
    */
   async saveTheme(theme) {
@@ -129,33 +139,21 @@ class PasswordStorage {
   }
 
   /**
-   * Get saved theme preference
-   * 
-   * @returns {Promise<string>} Theme preference
+   * Получает сохранённую тему
+   * @returns {Promise<string>} Тема
    */
   async getTheme() {
     try {
       const data = await chrome.storage.local.get(this.THEME_KEY);
-      return data[this.THEME_KEY] || 'system';
+      return data[this.THEME_KEY] || "system";
     } catch (error) {
       console.error("Error retrieving theme:", error);
-      return 'system';
+      return "system";
     }
   }
 
   /**
-   * Generate unique ID
-   *
-   * @private
-   * @returns {string} Unique ID
-   */
-  _generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2);
-  }
-
-  /**
-   * Get default settings
-   *
+   * Получает настройки по умолчанию
    * @private
    * @returns {Object} Default settings
    */
@@ -169,9 +167,9 @@ class PasswordStorage {
       excludeSimilar: false,
       excludeAmbiguous: false,
       minLength: 4,
-      maxLength: 64
+      maxLength: 64,
     };
   }
 }
 
-window.PasswordStorage = PasswordStorage;
+export default PasswordStorage;

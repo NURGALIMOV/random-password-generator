@@ -1,96 +1,131 @@
-# Password Generator Chrome Extension
+# Random Password Generator
 
-A powerful and secure browser extension for generating random passwords with customizable settings.
+A secure and feature-rich browser extension for generating strong, random passwords with advanced customization, history, and localization support.
 
 ## Features
 
-- Generate strong, random passwords instantly
-- Customize password length (8-64 characters)
-- Include/exclude character types:
+- Instantly generate strong, random passwords (4–64 characters)
+- Customize password length and character types:
   - Lowercase letters (a-z)
   - Uppercase letters (A-Z)
   - Numbers (0-9)
-  - Special characters (!@#$%^&\*()\_+-=[]{}|;:,.<>?)
+  - Special characters (!@#$%^&*)
 - Exclude similar characters (i, l, 1, L, o, 0, O)
 - Exclude ambiguous characters ({ } [ ] / \ ' " ` ~)
-- Password strength indicator
-- Password history management
-- Copy passwords to clipboard with one click
+- Password strength indicator (with color and label)
+- Password history (view, copy, delete, clear all)
+- One-click copy to clipboard
+- Toggle password visibility in history
+- Fully localizable (English, Russian)
+- Theme switcher: Light, Dark, System
+- All data stored locally (privacy-friendly)
+- Responsive, modern UI
 
-## Screenshots
+## Screenshot
 
-<img src="images/preview.png" alt="Main screen" width="200"/>
+<img src="images/preview.png" alt="Main screen" width="186"/>
+<img src="images/preview2.png" alt="Main screen" width="184"/>
 
-## Why I Created This
+## Build & Installation
 
-I built this extension because I needed a reliable and secure way to generate strong passwords for my accounts. I no longer rely on passwords that I can memorize; instead, I use this generator to ensure my accounts are safe with complex passwords.
+### Prerequisites
+- Node.js & npm
 
-## Installation
-
-### Chrome Web Store
-
-_not available yet_
-
-### Developer Mode Installation
-
-To install the extension in developer mode:
-
-1. Download or clone this repository to your local machine
-
+### Build
+1. Clone the repository:
    ```
-   git clone https://github.com/justpiple/chrome-password-generator.git
+   git clone https://github.com/NURGALIMOV/random-password-generator.git
+   cd random-password-generator
    ```
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Build the extension:
+   ```
+   npm run build
+   ```
+   The production-ready extension will be in the `dist/` folder.
 
-2. Open Chrome and navigate to `chrome://extensions/`
-
-3. Enable "Developer mode" by toggling the switch in the top right corner
-
-4. Click "Load unpacked" and select the `src` directory containing the extension files
-
-5. The Password Generator extension should now appear in your extensions list and be available in the toolbar
+### Install in Chrome (Developer Mode)
+1. Open Chrome and go to `chrome://extensions/`
+2. Enable "Developer mode"
+3. Click "Load unpacked" and select the `dist/` folder
+4. The extension will appear in your browser
 
 ## Usage
-
-1. Click the Password Generator icon in your browser toolbar
-2. Adjust settings as needed (length, character types, exclusions)
+1. Click the extension icon in your browser toolbar
+2. Adjust password settings (length, character types, exclusions)
 3. Click "Generate New Password" to create a password
-4. Click the copy icon to copy the password to your clipboard
-5. View your password history in the History tab
+4. Copy the password with one click
+5. View, copy, or delete previous passwords in the History tab
+6. Switch between Light, Dark, or System theme
+7. Change interface language (EN/RU) in the popup
 
 ## Security
+- All password generation and storage happens locally in your browser
+- No data is sent to any external server
+- Password history and settings are stored in browser local storage only
+- Open source: you can audit the code
 
-This extension generates passwords locally within your browser. No passwords are sent to external servers. Your password history is stored in your browser's local storage and is accessible only to you on your current device.
-
-## Development
-
-### Project Structure
-
+## Project Structure
 ```
-chrome-password-generator/
-└── src/ # Install this folder
-    ├── background.js
-    ├── icons/
-    │   ├── icon16.png
-    │   ├── icon32.png
-    │   └── icon192.png
-    ├── js/
-    │   ├── passwordGenerator.js
-    │   └── storage.js
-    ├── manifest.json
-    └── popup/
-        ├── popup.css
-        ├── popup.html
-        └── popup.js
+random-password-generator/
+├── dist/                # Production build (after npm run build)
+├── src/                 # Source code
+│   ├── background.js
+│   ├── icons/           # Extension icons (various sizes)
+│   ├── js/              # Core logic
+│   │   ├── passwordGenerator.js
+│   │   └── storage.js
+│   ├── manifest.json
+│   └── popup/
+│       ├── popup.html
+│       ├── popup.js
+│       ├── popup.css
+│       ├── i18n.js
+│       ├── events.js
+│       ├── ui.js
+│       ├── history.js
+│       ├── logger.js
+│       ├── constants.js
+│       ├── theme.js
+│       ├── helpers.js
+│       └── locales/
+│           ├── en.js
+│           └── ru.js
+├── images/              # Screenshots
+│   └── preview.png
+├── package.json
+├── webpack.config.js
+├── README.md
+└── LICENSE
 ```
-
-### Building from Source
-
-No build process is required. The extension can be loaded directly in developer mode.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
+## Manual Testing Checklist
 
-- Icons provided by [Feather Icons](https://feathericons.com/)
+- [ ] Extension loads in Chrome without errors
+- [ ] Password is generated on button click
+- [ ] Password length can be set from 4 to 64
+- [ ] All character type toggles work (lowercase, uppercase, numbers, special)
+- [ ] Exclude similar/ambiguous characters options work
+- [ ] Password strength indicator updates correctly
+- [ ] Password can be copied to clipboard
+- [ ] Password history records generated passwords
+- [ ] Passwords can be deleted from history
+- [ ] "Clear All" deletes all history
+- [ ] Password visibility toggle in history works
+- [ ] Theme switcher (Light/Dark/System) works and persists
+- [ ] Language switcher (EN/RU) works and persists
+- [ ] All UI elements are localized (EN/RU)
+- [ ] No data is sent to external servers (check network tab)
+- [ ] All settings and history persist after browser restart
+- [ ] Responsive layout (works on different window sizes)
+
+---
+
+**Enjoy secure password generation!**

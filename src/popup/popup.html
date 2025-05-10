@@ -1,241 +1,316 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Random Password Generator</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Random Password Generator</title>
-  <link rel="stylesheet" href="popup.css">
-</head>
-
-<body>
-  <div class="container">
-    <div class="theme-switcher">
-      <button class="theme-button" id="themeButton">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="5"></circle>
-          <line x1="12" y1="1" x2="12" y2="3"></line>
-          <line x1="12" y1="21" x2="12" y2="23"></line>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-          <line x1="1" y1="12" x2="3" y2="12"></line>
-          <line x1="21" y1="12" x2="23" y2="12"></line>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-        </svg>
-      </button>
-      <div class="theme-dropdown" id="themeDropdown">
-        <div class="theme-option" data-theme="light" title="Light theme">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="5"></circle>
-            <line x1="12" y1="1" x2="12" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="23"></line>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-            <line x1="1" y1="12" x2="3" y2="12"></line>
-            <line x1="21" y1="12" x2="23" y2="12"></line>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-          </svg>
+  <body>
+    <div class="container">
+      <div class="theme-switcher">
+        <div class="theme-options-row" id="themeOptionsRow">
+          <button class="theme-option" data-theme="light" title="Светлая тема">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          </button>
+          <button class="theme-option" data-theme="dark" title="Тёмная тема">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          </button>
+          <button class="theme-option" data-theme="system" title="Системная тема">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          </button>
         </div>
-        <div class="theme-option" data-theme="dark" title="Dark theme">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-          </svg>
-        </div>
-        <div class="theme-option" data-theme="system" title="System theme">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-            <line x1="8" y1="21" x2="16" y2="21"></line>
-            <line x1="12" y1="17" x2="12" y2="21"></line>
-          </svg>
-        </div>
+        <select id="langSelect" style="margin-left: 10px; margin-top: 2px; border-radius: 4px; padding: 2px 6px; font-size: 12px;">
+          <option value="en">EN</option>
+          <option value="ru">RU</option>
+        </select>
       </div>
+
+      <header>
+        <h1 data-i18n="appTitle">Random Password Generator</h1>
+        <p class="subtitle" data-i18n="subtitle">Generate secure passwords instantly</p>
+      </header>
+
+      <main>
+        <div class="password-display">
+          <input
+            type="password"
+            id="passwordOutput"
+            readonly
+            placeholder="Your password will appear here"
+            data-i18n-placeholder="passwordPlaceholder"
+          />
+          <div class="password-actions">
+            <button id="togglePasswordButton" title="Show/Hide password" data-i18n-title="togglePassword">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="eye-icon"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="eye-off-icon"
+                style="display: none"
+              >
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                ></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+            <button id="copyButton" title="Copy password" data-i18n-title="copyPassword">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="strength-meter">
+          <div class="strength-label">
+            <span data-i18n="passwordStrength">Password Strength</span>
+            <span id="strengthText" class="weak" data-i18n="weak">Weak</span>
+          </div>
+          <div class="meter">
+            <div id="strengthIndicator"></div>
+          </div>
+        </div>
+
+        <button id="generateButton" data-i18n="generateBtn">Generate New Password</button>
+
+        <div class="tabs">
+          <div class="tab-header">
+            <button class="tab-button active" data-tab="settings">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+                ></path>
+              </svg>
+              <span data-i18n="settingsTab">Settings</span>
+            </button>
+            <button class="tab-button" data-tab="history">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span data-i18n="historyTab">History</span>
+            </button>
+          </div>
+
+          <div id="settings" class="tab-content active">
+            <div class="option length-option">
+              <label for="passwordLength">
+                <span data-i18n="passwordLength">Password Length</span>
+                <span id="lengthValue">16</span>
+              </label>
+              <input type="range" id="passwordLength" min="4" max="64" value="16" class="slider" />
+            </div>
+
+            <div class="options-group">
+              <h3 data-i18n="charTypes">Character Types</h3>
+              <div class="option">
+                <label for="lowercase">
+                  <span data-i18n="lowercase">Lowercase Letters (a-z)</span>
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="lowercase" checked />
+                    <span class="toggle-slider"></span>
+                  </div>
+                </label>
+              </div>
+
+              <div class="option">
+                <label for="uppercase">
+                  <span data-i18n="uppercase">Uppercase Letters (A-Z)</span>
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="uppercase" checked />
+                    <span class="toggle-slider"></span>
+                  </div>
+                </label>
+              </div>
+
+              <div class="option">
+                <label for="numbers">
+                  <span data-i18n="numbers">Numbers (0-9)</span>
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="numbers" checked />
+                    <span class="toggle-slider"></span>
+                  </div>
+                </label>
+              </div>
+
+              <div class="option">
+                <label for="special">
+                  <span data-i18n="special">Special Characters (!@#$%^&*)</span>
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="special" checked />
+                    <span class="toggle-slider"></span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="options-group">
+              <h3 data-i18n="exclusions">Exclusions</h3>
+              <div class="option">
+                <label for="excludeSimilar">
+                  <span data-i18n="excludeSimilar">Similar characters (i, l, 1, L, o, 0, O)</span>
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="excludeSimilar" />
+                    <span class="toggle-slider"></span>
+                  </div>
+                </label>
+              </div>
+
+              <div class="option">
+                <label for="excludeAmbiguous">
+                  <span data-i18n="excludeAmbiguous">Ambiguous characters ({ } [ ] / \ ' " ` ~)</span>
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="excludeAmbiguous" />
+                    <span class="toggle-slider"></span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div id="history" class="tab-content">
+            <div class="history-header">
+              <h3 data-i18n="recentPasswords">Recent Passwords</h3>
+              <div class="history-actions">
+                <button id="toggleHistoryVisibilityButton" title="Toggle password visibility" data-i18n-title="toggleHistoryVisibility">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="eye-icon"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="eye-off-icon"
+                    style="display: none"
+                  >
+                    <path
+                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                    ></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                </button>
+                <button id="clearHistoryButton">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path
+                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                    ></path>
+                  </svg>
+                  <span data-i18n="clearAll">Clear All</span>
+                </button>
+              </div>
+            </div>
+            <div id="historyList" class="history-list">
+              <div class="empty-state">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <p data-i18n="noHistory">No password history yet</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <div id="copyMessage" class="copy-message" data-i18n="passwordCopied">Password copied to clipboard!</div>
     </div>
 
-    <header>
-      <h1>Random Password Generator</h1>
-      <p class="subtitle">Generate secure passwords instantly</p>
-    </header>
-
-    <main>
-      <div class="password-display">
-        <input type="password" id="passwordOutput" readonly placeholder="Your password will appear here">
-        <div class="password-actions">
-          <button id="togglePasswordButton" title="Show/Hide password">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-off-icon" style="display: none;">
-              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-              <line x1="1" y1="1" x2="23" y2="23"></line>
-            </svg>
-          </button>
-          <button id="copyButton" title="Copy password">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <div class="strength-meter">
-        <div class="strength-label">
-          <span>Password Strength</span>
-          <span id="strengthText" class="weak">Weak</span>
-        </div>
-        <div class="meter">
-          <div id="strengthIndicator"></div>
-        </div>
-      </div>
-
-      <button id="generateButton">Generate New Password</button>
-
-      <div class="tabs">
-        <div class="tab-header">
-          <button class="tab-button active" data-tab="settings">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path
-                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-              </path>
-            </svg>
-            Settings
-          </button>
-          <button class="tab-button" data-tab="history">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            History
-          </button>
-        </div>
-
-        <div id="settings" class="tab-content active">
-          <div class="option length-option">
-            <label for="passwordLength">
-              <span>Password Length</span>
-              <span id="lengthValue">16</span>
-            </label>
-            <input type="range" id="passwordLength" min="4" max="64" value="16" class="slider">
-          </div>
-
-          <div class="options-group">
-            <h3>Character Types</h3>
-            <div class="option">
-              <label for="lowercase">
-                <span>Lowercase Letters (a-z)</span>
-                <div class="toggle-switch">
-                  <input type="checkbox" id="lowercase" checked>
-                  <span class="toggle-slider"></span>
-                </div>
-              </label>
-            </div>
-
-            <div class="option">
-              <label for="uppercase">
-                <span>Uppercase Letters (A-Z)</span>
-                <div class="toggle-switch">
-                  <input type="checkbox" id="uppercase" checked>
-                  <span class="toggle-slider"></span>
-                </div>
-              </label>
-            </div>
-
-            <div class="option">
-              <label for="numbers">
-                <span>Numbers (0-9)</span>
-                <div class="toggle-switch">
-                  <input type="checkbox" id="numbers" checked>
-                  <span class="toggle-slider"></span>
-                </div>
-              </label>
-            </div>
-
-            <div class="option">
-              <label for="special">
-                <span>Special Characters (!@#$%^&*)</span>
-                <div class="toggle-switch">
-                  <input type="checkbox" id="special" checked>
-                  <span class="toggle-slider"></span>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <div class="options-group">
-            <h3>Exclusions</h3>
-            <div class="option">
-              <label for="excludeSimilar">
-                <span>Similar characters (i, l, 1, L, o, 0, O)</span>
-                <div class="toggle-switch">
-                  <input type="checkbox" id="excludeSimilar">
-                  <span class="toggle-slider"></span>
-                </div>
-              </label>
-            </div>
-
-            <div class="option">
-              <label for="excludeAmbiguous">
-                <span>Ambiguous characters ({ } [ ] / \ ' " ` ~)</span>
-                <div class="toggle-switch">
-                  <input type="checkbox" id="excludeAmbiguous">
-                  <span class="toggle-slider"></span>
-                </div>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div id="history" class="tab-content">
-          <div class="history-header">
-            <h3>Recent Passwords</h3>
-            <div class="history-actions">
-              <button id="toggleHistoryVisibilityButton" title="Toggle password visibility">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-off-icon" style="display: none;">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-              </button>
-              <button id="clearHistoryButton">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                </svg>
-                Clear All
-              </button>
-            </div>
-          </div>
-          <div id="historyList" class="history-list">
-            <div class="empty-state">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-              </svg>
-              <p>No password history yet</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-
-    <div id="copyMessage" class="copy-message">Password copied to clipboard!</div>
-  </div>
-
-  <script src="../js/passwordGenerator.js"></script>
-  <script src="../js/storage.js"></script>
-  <script src="popup.js"></script>
-</body>
-
+    <script type="module" src="popup.js"></script>
+  </body>
 </html>
