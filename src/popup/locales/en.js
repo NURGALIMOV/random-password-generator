@@ -37,4 +37,5 @@ export default {
   medium: "Medium",
   weak: "Weak",
   veryWeak: "Very Weak",
+  historyWarning: "Warning: password history is stored in plain text!",
 }; 

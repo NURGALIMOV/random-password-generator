@@ -1,6 +1,6 @@
 import PasswordGenerator from "../js/passwordGenerator.js";
 import PasswordStorage from "../js/storage.js";
-import { showToast, createHistoryItem } from "./ui.js";
+import { showToast, createHistoryItem, STRENGTH_COLORS } from "./ui.js";
 import { applyTheme, handleThemeChange, initializeTheme } from "./theme.js";
 import { loadPasswordHistory, invalidateHistoryCache } from "./history.js";
 import { initEventHandlers } from "./events.js";
@@ -176,7 +176,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   function updateStrengthMeter(password) {
     if (!password) {
       strengthIndicator.style.width = "0%";
-      strengthIndicator.style.backgroundColor = "#ddd";
+      strengthIndicator.style.backgroundColor = STRENGTH_COLORS.default;
       strengthText.textContent = t("none") || "None";
       return;
     }
@@ -186,15 +186,15 @@ document.addEventListener("DOMContentLoaded", async function () {
     strengthIndicator.style.width = `${strength.score}%`;
 
     if (strength.score < 20) {
-      strengthIndicator.style.backgroundColor = "#ff4040";
+      strengthIndicator.style.backgroundColor = STRENGTH_COLORS.veryWeak;
     } else if (strength.score < 40) {
-      strengthIndicator.style.backgroundColor = "#ff8040";
+      strengthIndicator.style.backgroundColor = STRENGTH_COLORS.weak;
     } else if (strength.score < 60) {
-      strengthIndicator.style.backgroundColor = "#ffbf40";
+      strengthIndicator.style.backgroundColor = STRENGTH_COLORS.medium;
     } else if (strength.score < 80) {
-      strengthIndicator.style.backgroundColor = "#80c040";
+      strengthIndicator.style.backgroundColor = STRENGTH_COLORS.strong;
     } else {
-      strengthIndicator.style.backgroundColor = "#40a040";
+      strengthIndicator.style.backgroundColor = STRENGTH_COLORS.veryStrong;
     }
 
     strengthText.textContent = strength.label;
@@ -214,6 +214,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         content.classList.add("active");
 
         if (targetTab === "history") {
+          showToast(t("historyWarning"));
           loadPasswordHistory(passwordStorage, historyList, createHistoryItem, (v) =>
             applyVisibilityState(isHistoryVisible),
           );

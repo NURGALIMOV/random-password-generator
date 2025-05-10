@@ -5,6 +5,16 @@ import { t } from "./i18n.js";
 let lastToastMessage = null;
 let lastConfirmDialog = null;
 
+// Цвета для индикатора силы пароля
+export const STRENGTH_COLORS = {
+  veryWeak: "#ff4040",
+  weak: "#ff8040",
+  medium: "#ffbf40",
+  strong: "#80c040",
+  veryStrong: "#40a040",
+  default: "#ddd"
+};
+
 /**
  * Показывает всплывающее уведомление (toast)
  * @param {string} messageKeyOrText - Ключ или текст сообщения

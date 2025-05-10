@@ -2,29 +2,39 @@
  * Module for generating random passwords with configurable options
  */
 import { t } from "../popup/i18n.js";
+import { getCryptoRandomInt } from "../popup/helpers.js";
 
+const LOWERCASE_CHARS = "abcdefghijklmnopqrstuvwxyz";
+const UPPERCASE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const NUMBER_CHARS = "0123456789";
+const SPECIAL_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+const SIMILAR_CHARS = "iIlL1oO0";
+const AMBIGUOUS_CHARS = "{}[]()/'\"~,;:.<>";
+
+/**
+ * Генератор паролей с поддержкой различных опций
+ */
 class PasswordGenerator {
   constructor() {
-    this.lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
-    this.uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    this.numberChars = "0123456789";
-    this.specialChars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
-    this.similarChars = "iIlL1oO0";
-    this.ambiguousChars = "{}[]()/'\"~,;:.<>";
+    this.lowercaseChars = LOWERCASE_CHARS;
+    this.uppercaseChars = UPPERCASE_CHARS;
+    this.numberChars = NUMBER_CHARS;
+    this.specialChars = SPECIAL_CHARS;
+    this.similarChars = SIMILAR_CHARS;
+    this.ambiguousChars = AMBIGUOUS_CHARS;
   }
 
   /**
-   * Generate random password based on given settings
-   *
-   * @param {Object} options - Password options
-   * @param {number} options.length - Desired password length
-   * @param {boolean} options.lowercase - Whether to include lowercase letters
-   * @param {boolean} options.uppercase - Whether to include uppercase letters
-   * @param {boolean} options.numbers - Whether to include numbers
-   * @param {boolean} options.special - Whether to include special characters
-   * @param {boolean} options.excludeSimilar - Whether to exclude similar characters
-   * @param {boolean} options.excludeAmbiguous - Whether to exclude ambiguous characters
-   * @returns {string} Generated password
+   * Генерирует случайный пароль по заданным настройкам
+   * @param {Object} options - Опции генерации
+   * @param {number} options.length - Длина пароля
+   * @param {boolean} options.lowercase - Использовать строчные буквы
+   * @param {boolean} options.uppercase - Использовать заглавные буквы
+   * @param {boolean} options.numbers - Использовать цифры
+   * @param {boolean} options.special - Использовать спецсимволы
+   * @param {boolean} options.excludeSimilar - Исключить похожие символы
+   * @param {boolean} options.excludeAmbiguous - Исключить неоднозначные символы
+   * @returns {string} Сгенерированный пароль
    */
   generatePassword(options) {
     const {
@@ -81,6 +91,10 @@ class PasswordGenerator {
       }
     }
 
+    if (!availableChars) {
+      throw new Error("Нет доступных символов для генерации пароля. Проверьте настройки.");
+    }
+
     let password = "";
 
     if (requiredChars.length > 0) {
@@ -96,10 +110,9 @@ class PasswordGenerator {
   }
 
   /**
-   * Calculate password strength
-   *
-   * @param {string} password - Password to evaluate
-   * @returns {Object} Object containing score and strength label
+   * Оценивает силу пароля
+   * @param {string} password - Пароль для оценки
+   * @returns {{score: number, label: string}} Результат оценки
    */
   calculateStrength(password) {
     if (!password) return { score: 0, label: "None" };
@@ -176,7 +189,7 @@ class PasswordGenerator {
    * @returns {string} One random character
    */
   _getRandomChar(chars) {
-    return chars.charAt(Math.floor(Math.random() * chars.length));
+    return chars.charAt(getCryptoRandomInt(chars.length));
   }
 
   /**
@@ -187,7 +200,7 @@ class PasswordGenerator {
    */
   _shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = getCryptoRandomInt(i + 1);
       [array[i], array[j]] = [array[j], array[i]];
     }
   }

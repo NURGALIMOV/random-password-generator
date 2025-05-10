@@ -20,5 +20,5 @@ export function getCurrentLang() {
 }
 
 export function t(key) {
-  return locales[currentLang][key] || key;
+  return locales[currentLang][key] || locales['en'][key] || key;
 } 

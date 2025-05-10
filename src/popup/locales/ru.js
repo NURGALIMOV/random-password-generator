@@ -37,4 +37,5 @@ export default {
   medium: "Средний",
   weak: "Слабый",
   veryWeak: "Очень слабый",
+  historyWarning: "Внимание: история паролей хранится в открытом виде!",
 }; 
