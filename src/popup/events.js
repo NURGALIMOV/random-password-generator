@@ -51,7 +51,7 @@ export function initEventHandlers({
   copyButton.addEventListener("click", () => {
     if (passwordOutput.value) {
       copyToClipboard(passwordOutput.value);
-      showToast(TOAST_MESSAGES.passwordCopied);
+      showToast(t("passwordCopied"));
     }
   });
 
