@@ -55,40 +55,49 @@ class PasswordGenerator {
       throw new Error("Password length must be between 4 and 64 characters");
     }
 
-    let availableChars = "";
-    let requiredChars = [];
-
-    if (lowercase) {
-      availableChars += this.lowercaseChars;
-      requiredChars.push(this._getRandomChar(this.lowercaseChars));
-    }
-
-    if (uppercase) {
-      availableChars += this.uppercaseChars;
-      requiredChars.push(this._getRandomChar(this.uppercaseChars));
-    }
-
-    if (numbers) {
-      availableChars += this.numberChars;
-      requiredChars.push(this._getRandomChar(this.numberChars));
-    }
-
-    if (special) {
-      availableChars += this.specialChars;
-      requiredChars.push(this._getRandomChar(this.specialChars));
-    }
+    // Сначала формируем наборы символов для каждого типа с учётом исключений
+    let lowercaseChars = lowercase ? this.lowercaseChars : "";
+    let uppercaseChars = uppercase ? this.uppercaseChars : "";
+    let numberChars = numbers ? this.numberChars : "";
+    let specialChars = special ? this.specialChars : "";
 
     if (excludeSimilar) {
       for (const char of this.similarChars) {
-        availableChars = availableChars.replace(new RegExp(char, "g"), "");
+        if (lowercaseChars) lowercaseChars = lowercaseChars.replace(new RegExp(char, "g"), "");
+        if (uppercaseChars) uppercaseChars = uppercaseChars.replace(new RegExp(char, "g"), "");
+        if (numberChars) numberChars = numberChars.replace(new RegExp(char, "g"), "");
+        if (specialChars) specialChars = specialChars.replace(new RegExp(char, "g"), "");
       }
     }
 
     if (excludeAmbiguous) {
       for (const char of this.ambiguousChars) {
         const escapedChar = char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        availableChars = availableChars.replace(new RegExp(escapedChar, "g"), "");
+        if (lowercaseChars) lowercaseChars = lowercaseChars.replace(new RegExp(escapedChar, "g"), "");
+        if (uppercaseChars) uppercaseChars = uppercaseChars.replace(new RegExp(escapedChar, "g"), "");
+        if (numberChars) numberChars = numberChars.replace(new RegExp(escapedChar, "g"), "");
+        if (specialChars) specialChars = specialChars.replace(new RegExp(escapedChar, "g"), "");
       }
+    }
+
+    let availableChars = "";
+    let requiredChars = [];
+
+    if (lowercase && lowercaseChars) {
+      availableChars += lowercaseChars;
+      requiredChars.push(this._getRandomChar(lowercaseChars));
+    }
+    if (uppercase && uppercaseChars) {
+      availableChars += uppercaseChars;
+      requiredChars.push(this._getRandomChar(uppercaseChars));
+    }
+    if (numbers && numberChars) {
+      availableChars += numberChars;
+      requiredChars.push(this._getRandomChar(numberChars));
+    }
+    if (special && specialChars) {
+      availableChars += specialChars;
+      requiredChars.push(this._getRandomChar(specialChars));
     }
 
     if (!availableChars) {
