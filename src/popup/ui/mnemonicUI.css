@@ -1,0 +1,253 @@
+/* Mnemonic Section Styles */
+.mnemonic-section {
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  padding: 20px 18px 16px 18px;
+  margin-bottom: 18px;
+}
+.mnemonic-section label,
+.mnemonic-section .form-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--space-sm);
+  display: block;
+}
+.mnemonic-section .form-check-label {
+  font-size: 12px;
+  color: var(--color-text-light);
+  font-weight: normal;
+  margin-bottom: 0;
+  display: inline-block;
+}
+.mnemonic-section .form-control,
+.mnemonic-section textarea.form-control {
+  width: 100%;
+  padding: var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text);
+  margin-bottom: var(--space-sm);
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.mnemonic-section .form-control:focus,
+.mnemonic-section textarea.form-control:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-lighter);
+}
+.mnemonic-section .form-row {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+  margin-bottom: var(--space-sm);
+  width: 100%;
+  margin-left: 0;
+  padding-left: 0;
+  box-sizing: border-box;
+}
+
+.mnemonic-section .form-group {
+  margin-bottom: var(--space-sm);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  gap: var(--space-md);
+  margin-left: 0;
+  padding-left: 0;
+  box-sizing: border-box;
+}
+.mnemonic-section .form-group label[for] {
+  cursor: pointer;
+  user-select: none;
+}
+.mnemonic-section .toggle-switch {
+  cursor: pointer;
+  flex: none;
+}
+
+.mnemonic-section .form-group:last-child,
+.mnemonic-section .form-row:last-child {
+  margin-bottom: 0;
+}
+
+/* Shared styles that were in the mnemonic block, might be for general options too. */
+.option.toggle-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+}
+.option.toggle-option label {
+  margin-bottom: 0;
+  margin-right: 0;
+}
+
+/* Unified toggle row style, may have been duplicated or also used elsewhere. */
+/* This was also present in passwordGenerationUI.css - consider creating a shared component CSS if appropriate */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: var(--space-sm);
+}
+.toggle-row label {
+  margin-bottom: 0;
+  margin-right: 0;
+}
+
+/* Styles that were specific to padding for sections, might be better in a general layout CSS */
+.mnemonic-section,
+.password-template-section,
+.encryption-settings-section {
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+/* General toggle switch styles (lines 107-159) removed as they are now in common.css */
+
+.custom-words-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.custom-word-chip {
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 2px 10px 2px 10px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  margin-right: 2px;
+  margin-bottom: 2px;
+  transition: background 0.2s;
+  position: relative;
+}
+.custom-word-chip .chip-delete {
+  display: none;
+  margin-left: 6px;
+  color: var(--color-error);
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  line-height: 1;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.custom-word-chip:hover {
+  background: var(--color-gray-200);
+}
+.custom-word-chip:hover .chip-delete {
+  display: inline;
+}
+
+.form-group-vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.form-row-horizontal {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.form-row-horizontal label {
+  min-width: 140px;
+  text-align: left;
+  margin-bottom: 0;
+  white-space: nowrap;
+  display: flex;
+  justify-content: flex-start;
+  padding-left: 0;
+  margin-left: 0;
+}
+.form-row-horizontal .form-control {
+  flex: 1;
+}
+
+#mnemonicCustomWordInput::placeholder {
+  font-size: 8px;
+}
+
+.mnemonic-section .form-row-horizontal label,
+.mnemonic-section .form-label {
+  min-width: 140px;
+  text-align: left;
+  margin-bottom: 0;
+  white-space: nowrap;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+.mnemonic-section .form-row-horizontal > .form-label {
+  width: 160px;      
+  flex: 0 0 160px;   
+  display: block;     
+  margin-bottom: 0;
+  margin-right: 0;
+}
+
+.mnemonic-section .form-group > label.form-label {
+    width: 160px;
+    flex: 0 0 160px;
+    margin-right: 0; 
+    margin-bottom: 0; 
+    display: block; 
+    white-space: nowrap; 
+    text-align: left;
+}
+
+.mnemonic-section .form-row-horizontal .form-control,
+.mnemonic-section .form-group:not(.mnemonic-toggle-row):not(.form-group-vertical-slider) .form-control {
+    flex: 1;
+    width: auto; 
+    margin-bottom: 0;
+    min-width: 0; 
+}
+
+.mnemonic-section .form-group-vertical-slider {
+    display: block; 
+    width: 100%;
+    margin-bottom: var(--space-lg); 
+    padding-left: 0; 
+    box-sizing: border-box;
+}
+
+.mnemonic-section .form-group-vertical-slider > label {
+    display: block; 
+    width: auto; 
+    margin-bottom: var(--space-md); 
+    white-space: nowrap; 
+    text-align: left; 
+    flex: none;
+}
+
+.mnemonic-section .form-group-vertical-slider .slider {
+    width: 100%;
+    margin-bottom: 0; 
+}
+
+.mnemonic-section .form-group.mnemonic-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.mnemonic-section .form-row.mnemonic-toggle-row > div + div {
+  margin-left: 0;
+} 

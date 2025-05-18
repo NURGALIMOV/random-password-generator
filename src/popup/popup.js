@@ -1,402 +1,349 @@
+console.log('POPUP.JS SCRIPT EXECUTION STARTED');
+
 import PasswordGenerator from "../js/passwordGenerator.js";
 import PasswordStorage from "../js/storage.js";
-import { showToast, createHistoryItem, STRENGTH_COLORS } from "./ui.js";
-import { applyTheme, handleThemeChange, initializeTheme } from "./theme.js";
-import { loadPasswordHistory, invalidateHistoryCache } from "./history.js";
-import { initEventHandlers } from "./events.js";
-import { TOAST_MESSAGES } from "./constants.js";
+import { calculateStrength } from "../js/passwordStrength.js";
+import { STRENGTH_COLORS } from "./ui.js";
+import { applyTheme, initializeTheme } from "./theme.js";
+import { getCachedHistory, invalidateHistoryCache } from "./history.js";
 import { copyToClipboard } from "./helpers.js";
 import { t, setLang, getCurrentLang } from "./i18n.js";
 import { logEvent, logError } from "./logger.js";
+import { initMnemonicUI, getMnemonicSettings, updateMnemonicUI as updateMnemonicUICallback } from "./ui/mnemonicUI.js";
+import * as passwordGenerationUI from "./ui/passwordGenerationUI.js";
+import * as masterPasswordUI from "./ui/masterPasswordUI.js";
+import * as settingsUI from "./ui/settingsUI.js";
+import { initHistoryUI, refreshHistoryDisplay } from "./ui/historyUI.js";
+import { initTabsUI, switchToTab as switchToTabFromTabsUI } from "./ui/tabsUI.js";
+import * as MasterPasswordService from './services/masterPasswordService.js';
+import * as PasswordService from './services/passwordService.js';
+import * as SettingsService from './services/settingsService.js';
+import * as ImportExportService from './services/importExportService.js';
 
-/**
- * UI Control for Password Generator Extension
- */
-document.addEventListener("DOMContentLoaded", async function () {
+document.addEventListener("DOMContentLoaded", async () => {
+  // --- Service and Helper Initialization ---
   const passwordGenerator = new PasswordGenerator();
-  const passwordStorage = new PasswordStorage();
+  const passwordStorage = new PasswordStorage(chrome.storage.local);
 
-  const passwordOutput = document.getElementById("passwordOutput");
-  const copyButton = document.getElementById("copyButton");
-  const generateButton = document.getElementById("generateButton");
-  const passwordLengthInput = document.getElementById("passwordLength");
-  const lengthValue = document.getElementById("lengthValue");
-  const lowercaseCheckbox = document.getElementById("lowercase");
-  const uppercaseCheckbox = document.getElementById("uppercase");
-  const numbersCheckbox = document.getElementById("numbers");
-  const specialCheckbox = document.getElementById("special");
-  const excludeSimilarCheckbox = document.getElementById("excludeSimilar");
-  const excludeAmbiguousCheckbox = document.getElementById("excludeAmbiguous");
-  const tabButtons = document.querySelectorAll(".tab-button");
-  const tabContents = document.querySelectorAll(".tab-content");
-  const clearHistoryButton = document.getElementById("clearHistoryButton");
-  const historyList = document.getElementById("historyList");
-  const strengthIndicator = document.getElementById("strengthIndicator");
-  const strengthText = document.getElementById("strengthText");
+  // --- DOM Element Declarations ---
+  let passwordOutput, copyButton, generateButton, strengthIndicator, strengthText,
+      strengthDetailsToggle, strengthDetailsContent, strengthWarningsList, strengthSuggestionsList,
+      enableEncryptionToggle, togglePasswordButton, eyeIcon, eyeOffIcon,
+      themeButton, themeOptions, importSettingsBtn, exportSettingsBtn, importSettingsInput,
+      importPasswordsBtn, exportPasswordsBtn,
+      addPasswordButton;
 
-  // Theme switcher functionality
-  const themeOptions = document.querySelectorAll(".theme-options-row .theme-option");
+  // --- Function Declarations ---
 
-  // Password visibility toggle
-  const togglePasswordButton = document.getElementById("togglePasswordButton");
-  const eyeIcon = togglePasswordButton.querySelector(".eye-icon");
-  const eyeOffIcon = togglePasswordButton.querySelector(".eye-off-icon");
-
-  togglePasswordButton.addEventListener("click", () => {
-    const type = passwordOutput.getAttribute("type") === "password" ? "text" : "password";
-    passwordOutput.setAttribute("type", type);
-
-    // Toggle icons
-    eyeIcon.style.display = type === "password" ? "block" : "none";
-    eyeOffIcon.style.display = type === "password" ? "none" : "block";
-  });
-
-  const toggleHistoryVisibilityButton = document.getElementById("toggleHistoryVisibilityButton");
-  const historyEyeIcon = toggleHistoryVisibilityButton.querySelector(".eye-off-icon");
-  const historyEyeOffIcon = toggleHistoryVisibilityButton.querySelector(".eye-icon");
-
-  let isHistoryVisible = true;
-
-  // Load saved visibility state
-  async function loadVisibilityState(passwordStorage) {
-    const settings = await passwordStorage.getSettings();
-    isHistoryVisible = settings.historyVisible !== false; // default to true if not set
-
-    // Update icons
-    historyEyeIcon.style.display = isHistoryVisible ? "block" : "none";
-    historyEyeOffIcon.style.display = isHistoryVisible ? "none" : "block";
+  function getDOMElements() {
+    passwordOutput = document.getElementById("passwordOutput");
+    copyButton = document.getElementById("copyButton");
+    generateButton = document.getElementById("generateButton");
+    strengthIndicator = document.getElementById("strengthIndicator");
+    strengthText = document.getElementById("strengthText");
+    strengthDetailsToggle = document.getElementById("strengthDetailsToggle");
+    strengthDetailsContent = document.getElementById("strengthDetailsContent");
+    strengthWarningsList = document.querySelector("#strengthWarnings ul");
+    strengthSuggestionsList = document.querySelector("#strengthSuggestions ul");
+    enableEncryptionToggle = document.getElementById("enableEncryptionToggle");
+    togglePasswordButton = document.getElementById("togglePasswordButton");
+    eyeIcon = togglePasswordButton ? togglePasswordButton.querySelector(".eye-icon") : null;
+    eyeOffIcon = togglePasswordButton ? togglePasswordButton.querySelector(".eye-off-icon") : null;
+    themeButton = document.getElementById("themeButton");
+    themeOptions = document.getElementById("themeOptions");
+    importSettingsBtn = document.getElementById('importSettingsBtn');
+    exportSettingsBtn = document.getElementById('exportSettingsBtn');
+    importSettingsInput = document.getElementById('importSettingsInput');
+    importPasswordsBtn = document.getElementById('importPasswordsBtn');
+    exportPasswordsBtn = document.getElementById('exportPasswordsBtn');
+    addPasswordButton = document.getElementById('addPasswordButton');
   }
 
-  // Apply visibility state to passwords
-  function applyVisibilityState(isHistoryVisible) {
-    const historyPasswords = document.querySelectorAll(".history-password");
-    historyPasswords.forEach((password) => {
-      if (isHistoryVisible) {
-        password.classList.remove("masked");
-      } else {
-        password.classList.add("masked");
+  function setupEventListeners() {
+    generateButton?.addEventListener("click", PasswordService.generatePasswordAndSave);
+
+    copyButton?.addEventListener("click", () => {
+      if (passwordOutput?.value) {
+        copyToClipboard(passwordOutput.value);
+        showToast(t("passwordCopied"));
+        logEvent('password_copied', { length: passwordOutput.value.length });
       }
     });
-  }
 
-  toggleHistoryVisibilityButton.addEventListener("click", async () => {
-    isHistoryVisible = !isHistoryVisible;
-    applyVisibilityState(isHistoryVisible);
-
-    // Toggle icons - show crossed eye when password is visible
-    historyEyeIcon.style.display = isHistoryVisible ? "block" : "none";
-    historyEyeOffIcon.style.display = isHistoryVisible ? "none" : "block";
-
-    // Save visibility state
-    const settings = await passwordStorage.getSettings();
-    settings.historyVisible = isHistoryVisible;
-    await passwordStorage.saveSettings(settings);
-  });
-
-  // Load visibility state on startup
-  await loadVisibilityState(passwordStorage);
-
-  async function loadSettings() {
-    const settings = await passwordStorage.getSettings();
-
-    passwordLengthInput.value = settings.length;
-    lengthValue.textContent = settings.length;
-    lowercaseCheckbox.checked = settings.lowercase;
-    uppercaseCheckbox.checked = settings.uppercase;
-    numbersCheckbox.checked = settings.numbers;
-    specialCheckbox.checked = settings.special;
-    excludeSimilarCheckbox.checked = settings.excludeSimilar;
-    excludeAmbiguousCheckbox.checked = settings.excludeAmbiguous;
-  }
-
-  async function saveSettings() {
-    const settings = {
-      length: parseInt(passwordLengthInput.value),
-      lowercase: lowercaseCheckbox.checked,
-      uppercase: uppercaseCheckbox.checked,
-      numbers: numbersCheckbox.checked,
-      special: specialCheckbox.checked,
-      excludeSimilar: excludeSimilarCheckbox.checked,
-      excludeAmbiguous: excludeAmbiguousCheckbox.checked,
-    };
-
-    await passwordStorage.saveSettings(settings);
-  }
-
-  /**
-   * Get current settings from UI
-   */
-  function getCurrentSettings() {
-    return {
-      length: parseInt(passwordLengthInput.value),
-      lowercase: lowercaseCheckbox.checked,
-      uppercase: uppercaseCheckbox.checked,
-      numbers: numbersCheckbox.checked,
-      special: specialCheckbox.checked,
-      excludeSimilar: excludeSimilarCheckbox.checked,
-      excludeAmbiguous: excludeAmbiguousCheckbox.checked,
-    };
-  }
-
-  async function generatePassword() {
-    try {
-      if (
-        !lowercaseCheckbox.checked &&
-        !uppercaseCheckbox.checked &&
-        !numbersCheckbox.checked &&
-        !specialCheckbox.checked
-      ) {
-        showToast(t("selectCharType") || TOAST_MESSAGES.pleaseSelectAtLeastOneCharacterType);
-        return;
+    passwordOutput?.addEventListener('click', () => {
+      if (passwordOutput.value && passwordOutput.value !== (t("passwordPlaceholder"))) {
+        copyToClipboard(passwordOutput.value);
+        showToast(t("passwordCopied"));
       }
+    });
 
-      const settings = getCurrentSettings();
-      const newPassword = passwordGenerator.generatePassword(settings);
-
-      passwordOutput.value = newPassword;
-      updateStrengthMeter(newPassword);
-
-      await passwordStorage.savePassword(newPassword);
-
-      const historyTab = document.getElementById("history");
-      if (historyTab.classList.contains("active")) {
-        invalidateHistoryCache();
-        loadPasswordHistory(passwordStorage, historyList, createHistoryItem, (v) =>
-          applyVisibilityState(isHistoryVisible),
-        );
+    passwordOutput?.addEventListener('input', () => {
+      const password = passwordOutput.value;
+      updateStrengthMeterUI(password);
+      if (addPasswordButton) {
+        addPasswordButton.style.display = password ? 'inline-block' : 'none';
       }
-    } catch (error) {
-      showToast(t("error") || error.message);
+    });
+
+    addPasswordButton?.addEventListener('click', async () => {
+      const password = passwordOutput.value;
+      if (password) {
+        await PasswordService.savePasswordToHistory(password);
+        showToast(t('passwordSaved'));
+        addPasswordButton.style.display = 'none';
+      }
+    });
+
+    togglePasswordButton?.addEventListener("click", () => {
+      const type = passwordOutput.getAttribute("type") === "password" ? "text" : "password";
+      passwordOutput.setAttribute("type", type);
+      if(eyeIcon) eyeIcon.style.display = type === "password" ? "block" : "none";
+      if(eyeOffIcon) eyeOffIcon.style.display = type === "password" ? "none" : "block";
+    });
+
+    strengthDetailsToggle?.addEventListener('click', () => {
+        const isOpen = strengthDetailsToggle.classList.toggle('open');
+        strengthDetailsContent.style.display = isOpen ? 'flex' : 'none';
+    });
+
+    enableEncryptionToggle?.addEventListener("change", (event) => {
+      handleEncryptionToggleChange(settingsUI.getEnableEncryptionToggleState(), event);
+    });
+
+    exportSettingsBtn?.addEventListener('click', handleExportSettings);
+    importSettingsBtn?.addEventListener('click', () => importSettingsInput.click());
+    importSettingsInput?.addEventListener('change', handleImportSettings);
+
+    exportPasswordsBtn?.addEventListener('click', () => ImportExportService.handleExportPasswords(passwordStorage, MasterPasswordService, showToast));
+    importPasswordsBtn?.addEventListener('click', () => {
+        const importPasswordsInput = document.getElementById('importPasswordsInput');
+        if (importPasswordsInput) {
+            importPasswordsInput.click();
+        }
+    });
+    const importPasswordsInput = document.getElementById('importPasswordsInput');
+    if (importPasswordsInput) {
+        importPasswordsInput.addEventListener('change', (event) => ImportExportService.handleImportPasswords(event, passwordStorage, MasterPasswordService, showToast));
     }
+
+    const darkModeMatcher = window.matchMedia("(prefers-color-scheme: dark)");
+    const systemThemeChangeHandler = async () => {
+      const savedTheme = await passwordStorage.getTheme();
+      if (savedTheme === "system") await applyTheme("system", document.querySelectorAll(".theme-options-row .theme-option"));
+    };
+    darkModeMatcher.addEventListener('change', systemThemeChangeHandler);
   }
 
-  /**
-   * Update the strength meter for the current password
-   */
-  function updateStrengthMeter(password) {
-    if (!password) {
-      strengthIndicator.style.width = "0%";
-      strengthIndicator.style.backgroundColor = STRENGTH_COLORS.default;
-      strengthText.textContent = t("none") || "None";
+  function showToast(messageKeyOrText, type = 'success', duration = 3000) {
+      const toastContainer = document.getElementById('toastContainer');
+      if (!toastContainer) {
+          console.error("Toast container not found!");
+          return;
+      }
+
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = t(messageKeyOrText) || messageKeyOrText;
+
+      toastContainer.appendChild(toast);
+      
+      setTimeout(() => {
+          toast.classList.add('show');
+      }, 10);
+
+      if (duration > 0) {
+          setTimeout(() => {
+              toast.classList.remove('show');
+              toast.addEventListener('transitionend', () => toast.remove());
+          }, duration);
+      }
+  }
+
+  function showConfirmDialog(messageKeyOrText, onConfirm) {
+    const dialog = document.getElementById("confirmDialog");
+    const messageEl = document.getElementById("confirmMessage");
+    const yesBtn = document.getElementById("confirmYes");
+    const noBtn = document.getElementById("confirmNo");
+
+    if (!dialog || !messageEl || !yesBtn || !noBtn) {
+      console.error("Confirmation dialog elements not found.");
       return;
     }
 
-    const strength = passwordGenerator.calculateStrength(password);
+    messageEl.textContent = t(messageKeyOrText) || messageKeyOrText;
+    yesBtn.textContent = t("yes") || "Yes";
+    noBtn.textContent = t("no") || "No";
+    dialog.classList.add("show");
 
-    strengthIndicator.style.width = `${strength.score}%`;
+    const cleanup = () => {
+      dialog.classList.remove("show");
+      yesBtn.removeEventListener('click', yesHandler);
+      noBtn.removeEventListener('click', noHandler);
+    };
 
-    if (strength.score < 20) {
-      strengthIndicator.style.backgroundColor = STRENGTH_COLORS.veryWeak;
-    } else if (strength.score < 40) {
-      strengthIndicator.style.backgroundColor = STRENGTH_COLORS.weak;
-    } else if (strength.score < 60) {
-      strengthIndicator.style.backgroundColor = STRENGTH_COLORS.medium;
-    } else if (strength.score < 80) {
-      strengthIndicator.style.backgroundColor = STRENGTH_COLORS.strong;
-    } else {
-      strengthIndicator.style.backgroundColor = STRENGTH_COLORS.veryStrong;
-    }
-
-    strengthText.textContent = strength.label;
-  }
-
-  function switchTab(targetTab) {
-    tabButtons.forEach((button) => {
-      if (button.dataset.tab === targetTab) {
-        button.classList.add("active");
-      } else {
-        button.classList.remove("active");
-      }
-    });
-
-    tabContents.forEach((content) => {
-      if (content.id === targetTab) {
-        content.classList.add("active");
-
-        if (targetTab === "history") {
-          showToast(t("historyWarning"));
-          loadPasswordHistory(passwordStorage, historyList, createHistoryItem, (v) =>
-            applyVisibilityState(isHistoryVisible),
-          );
-        }
-      } else {
-        content.classList.remove("active");
-      }
-    });
-  }
-
-  generateButton.addEventListener("click", generatePassword);
-
-  copyButton.addEventListener("click", () => {
-    if (passwordOutput.value) {
-      copyToClipboard(passwordOutput.value);
-    }
-  });
-
-  passwordLengthInput.addEventListener("input", () => {
-    lengthValue.textContent = passwordLengthInput.value;
-    saveSettings();
-  });
-
-  const checkboxes = [
-    lowercaseCheckbox,
-    uppercaseCheckbox,
-    numbersCheckbox,
-    specialCheckbox,
-    excludeSimilarCheckbox,
-    excludeAmbiguousCheckbox,
-  ];
-
-  checkboxes.forEach((checkbox) => {
-    checkbox.addEventListener("change", saveSettings);
-  });
-
-  tabButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      switchTab(button.dataset.tab);
-    });
-  });
-
-  function showConfirmDialog(message, onConfirm) {
-    const existingToast = document.querySelector(".success-message");
-    if (existingToast) {
-      existingToast.remove();
-    }
-
-    const toast = document.createElement("div");
-    toast.className = "success-message";
-    toast.innerHTML = `
-      <div>${message}</div>
-      <div class="confirm-buttons">
-        <button class="confirm-yes">${t("yes") || "Yes"}</button>
-        <button class="confirm-no">${t("no") || "No"}</button>
-      </div>
-    `;
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.classList.add("show");
-    }, 10);
-
-    const yesButton = toast.querySelector(".confirm-yes");
-    const noButton = toast.querySelector(".confirm-no");
-
-    yesButton.addEventListener("click", () => {
-      toast.classList.remove("show");
-      setTimeout(() => {
-        toast.remove();
-        onConfirm();
-      }, 300);
-    });
-
-    noButton.addEventListener("click", () => {
-      toast.classList.remove("show");
-      setTimeout(() => {
-        toast.remove();
-      }, 300);
-    });
-  }
-
-  clearHistoryButton.addEventListener("click", async () => {
-    showConfirmDialog(t("clearHistoryConfirm"), async () => {
-      await passwordStorage.clearHistory();
-      invalidateHistoryCache();
-      await loadPasswordHistory(passwordStorage, historyList, createHistoryItem, (v) =>
-        applyVisibilityState(isHistoryVisible),
-      );
-      showToast(t("historyCleared"));
-    });
-  });
-
-  // Обработка кликов по кнопкам тем
-  themeOptions.forEach((option) => {
-    option.addEventListener("click", async () => {
-      const theme = option.dataset.theme;
-      await handleThemeChange(theme, passwordStorage, null, themeOptions);
-    });
-  });
-
-  // Listen for system theme changes
-  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", async (e) => {
-    const savedTheme = await passwordStorage.getTheme();
-    if (savedTheme === "system") {
-      await applyTheme("system", null, themeOptions);
-    }
-  });
-
-  // Initialize theme on load
-  initializeTheme(passwordStorage, null, themeOptions);
-
-  await loadSettings();
-  generatePassword();
-
-  // Call initEventHandlers after all dependencies are loaded
-  initEventHandlers({
-    generateButton,
-    generatePassword,
-    copyButton,
-    passwordOutput,
-    showToast,
-    passwordLengthInput,
-    lengthValue,
-    saveSettings,
-    checkboxes,
-    tabButtons,
-    switchTab,
-    clearHistoryButton,
-    showConfirmDialog,
-    passwordStorage,
-    historyList,
-    createHistoryItem,
-    applyVisibilityState,
-    isHistoryVisible,
-    loadPasswordHistory,
-  });
-
-  // Делегирование событий для истории паролей
-  historyList.addEventListener("click", async (e) => {
-    const itemEl = e.target.closest(".history-item");
-    if (!itemEl) return;
-    const id = itemEl.dataset.id;
-    const passwordSpan = itemEl.querySelector(".history-password");
-    const password = passwordSpan ? passwordSpan.textContent : "";
-
-    if (e.target.closest(".history-copy")) {
+    const yesHandler = async () => {
       try {
-        const ok = await copyToClipboard(password);
-        showToast(ok ? t("passwordCopied") : t("passwordCopyFailed"));
-        logEvent("password_copied", { length: password.length });
-        // Copy message
-        const copyMsg = document.getElementById("copyMessage");
-        if (copyMsg) copyMsg.textContent = t("passwordCopied") || "Password copied to clipboard!";
-      } catch (err) {
-        showToast(t("passwordCopyFailed"));
-        logError(err, "copy_password");
-      }
-    }
-
-    if (e.target.closest(".history-delete")) {
-      showConfirmDialog(t("deleteConfirm"), async () => {
-        try {
-          await passwordStorage.deletePassword(id);
-          invalidateHistoryCache();
-          showToast(t("passwordDeleted"));
-          logEvent("password_deleted", { id });
-          loadPasswordHistory(passwordStorage, historyList, createHistoryItem, () => applyVisibilityState(isHistoryVisible));
-        } catch (err) {
-          showToast(t("deleteFailed") || "Failed to delete password");
-          logError(err, "delete_password");
+        if (typeof onConfirm === 'function') {
+          await onConfirm();
         }
-      });
-    }
-  });
+      } catch (error) {
+        logError(error, 'onConfirm callback in showConfirmDialog');
+      } finally {
+        cleanup();
+      }
+    };
 
-  // Универсальная локализация всех элементов
+    const noHandler = () => {
+      cleanup();
+    };
+
+    yesBtn.addEventListener('click', yesHandler);
+    noBtn.addEventListener('click', noHandler);
+  }
+
+  async function handleExportSettings() {
+    try {
+      const settings = await passwordStorage.getSettings();
+      const settingsToExport = {
+        generationOptions: settings.generationOptions,
+        mnemonic: settings.mnemonic,
+        uiSettings: settings.uiSettings,
+      };
+
+      const settingsString = JSON.stringify(settingsToExport, null, 2);
+      const blob = new Blob([settingsString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'password-generator-settings.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      logError(error, 'handleExportSettings');
+      showToast(t('exportError'), 'error');
+    }
+  }
+
+  async function handleImportSettings(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target.result;
+        const importedSettings = JSON.parse(text);
+
+        if (!importedSettings || typeof importedSettings.generationOptions === 'undefined') {
+          throw new Error("Invalid settings file format.");
+        }
+
+        const currentSettings = await passwordStorage.getSettings() || {};
+
+        const newSettings = {
+            ...currentSettings,
+            ...importedSettings
+        };
+        
+        await passwordStorage.saveSettings(newSettings);
+        // Reload everything to reflect imported settings
+        await SettingsService.loadSettingsAndApply();
+        const newLang = newSettings.uiSettings?.lang || 'en';
+        await setLang(newLang);
+        localizeAll();
+        await initializeTheme(passwordStorage, null, document.querySelectorAll(".theme-options-row .theme-option"));
+        
+        showToast(t('importSuccess'));
+      } catch (error) {
+        logError(error, 'handleImportSettings');
+        showToast(t('importError'), 'error');
+      } finally {
+        if(importSettingsInput) importSettingsInput.value = '';
+      }
+    };
+    reader.onerror = (error) => {
+        logError(error, 'FileReader error');
+        showToast(t('importError'), 'error');
+        if(importSettingsInput) importSettingsInput.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  function updateStrengthMeterUI(password) {
+    if (!strengthText || !strengthIndicator || !strengthDetailsContent) return;
+  
+    if (!password) {
+      strengthText.textContent = "";
+      strengthIndicator.style.width = "0%";
+      strengthIndicator.style.backgroundColor = "transparent";
+      strengthDetailsToggle.style.display = 'none';
+      strengthDetailsContent.style.display = 'none';
+      return;
+    }
+  
+    const strength = calculateStrength(password);
+    strengthText.textContent = t(strength.label) || strength.label;
+    strengthIndicator.style.width = `${strength.score}%`;
+    
+    strengthIndicator.style.backgroundColor = STRENGTH_COLORS[strength.level] || STRENGTH_COLORS.default;
+  
+    const { warnings, suggestions } = strength.feedback;
+    if (strengthWarningsList) strengthWarningsList.innerHTML = '';
+    if (strengthSuggestionsList) strengthSuggestionsList.innerHTML = '';
+  
+    if ((warnings?.length > 0) || (suggestions?.length > 0)) {
+        strengthDetailsToggle.style.display = 'flex';
+    } else {
+        strengthDetailsToggle.style.display = 'none';
+        strengthDetailsContent.style.display = 'none';
+        strengthDetailsToggle.classList.remove('open');
+        return;
+    }
+
+    const warningsSection = document.getElementById('strengthWarnings');
+    if (warnings?.length > 0) {
+      warnings.forEach(w => {
+        const li = document.createElement('li');
+        li.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> <span>${t(w.key) || w.message}</span>`;
+        strengthWarningsList.appendChild(li);
+      });
+      warningsSection.style.display = 'block';
+    } else {
+      warningsSection.style.display = 'none';
+    }
+  
+    const suggestionsSection = document.getElementById('strengthSuggestions');
+    if (suggestions?.length > 0) {
+      suggestions.forEach(s => {
+        const li = document.createElement('li');
+        li.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> <span>${t(s.key) || s.message}</span>`;
+        strengthSuggestionsList.appendChild(li);
+      });
+      suggestionsSection.style.display = 'block';
+    } else {
+      suggestionsSection.style.display = 'none';
+    }
+  }
+  
+  async function handleTabSwitched(tabId, isActiveAndExpanded) {
+    if (tabId === 'history' && isActiveAndExpanded) {
+      await refreshHistoryDisplay(); 
+    }
+    logEvent("tab_switched", { tab: tabId, expanded: isActiveAndExpanded });
+  }
+
   function localizeAll() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
-      if (key && t(key)) el.textContent = t(key);
+      if (key && t(key)) {
+        if (key.startsWith('templateHelp')) {
+          el.innerHTML = t(key);
+        } else {
+          el.textContent = t(key);
+        }
+      }
     });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
       const key = el.getAttribute('data-i18n-placeholder');
@@ -407,87 +354,169 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (key && t(key)) el.setAttribute('title', t(key));
     });
   }
+  
+  async function handleDisableEncryption(masterPasswordToUse, originalEvent = null) {
+    let success = await SettingsService.disableEncryption(masterPasswordToUse);
+    if (success) {
+      showToast(t('disableEncryptionSuccess'));
+    } else {
+      if (originalEvent?.target) originalEvent.target.checked = true;
+    }
+    MasterPasswordService.setAwaitingMPForEncryptionDisable(false, null);
+  }
 
-  // Локализуем всё при загрузке
-  localizeAll();
-  updateStrengthMeter(passwordOutput.value);
+  async function handleEncryptionToggleChange(isEnabled, event = null) {
+    if (isEnabled) {
+      showToast(t('encryptionEnabledMessage'), 'info');
+      MasterPasswordService.prepareForInitialSetup();
+      settingsUI.updateEnableEncryptionToggle(true);
+      await MasterPasswordService.triggerMasterPasswordUIVisibilityUpdate();
+      switchToTabFromTabsUI('settings');
+      masterPasswordUI.focusSetupForm?.('new');
+    } else {
+      if (MasterPasswordService.isInitialSetupIntentActive()) {
+        MasterPasswordService.cancelInitialSetupIntent();
+        settingsUI.updateEnableEncryptionToggle(false);
+        masterPasswordUI.hideAllMasterPasswordSections();
+      } else {
+        const settings = await passwordStorage.getSettings();
+        if (settings.masterPasswordPreviouslySet && !MasterPasswordService.getCurrentMasterPassword()) {
+          MasterPasswordService.setAwaitingMPForEncryptionDisable(true, event);
+          masterPasswordUI.showPrompt({ reason: 'disableEncryption' });
+          switchToTabFromTabsUI('settings');
 
-  const langSelect = document.getElementById("langSelect");
-  const initialLang = getCurrentLang();
-  setLang(initialLang);
-  if (langSelect) {
-    langSelect.value = initialLang;
-    langSelect.addEventListener("change", (e) => {
-      setLang(e.target.value);
-      localizeAll();
-      updateStrengthMeter(passwordOutput.value);
-      // Перерисовать все тексты на UI/UX
-      document.querySelector("header h1").textContent = t("appTitle") || "Random Password Generator";
-      document.querySelector(".subtitle").textContent = t("subtitle") || "Generate secure passwords instantly";
-      // Вкладки
-      const tabButtons = document.querySelectorAll(".tab-button");
-      if (tabButtons[0]) tabButtons[0].lastChild.textContent = t("settingsTab") || "Settings";
-      if (tabButtons[1]) tabButtons[1].lastChild.textContent = t("historyTab") || "History";
-      // Кнопка генерации
-      const genBtn = document.getElementById("generateButton");
-      if (genBtn) genBtn.textContent = t("generateBtn") || "Generate New Password";
-      // Плейсхолдер поля пароля
-      const passOut = document.getElementById("passwordOutput");
-      if (passOut) passOut.placeholder = t("passwordPlaceholder") || "Your password will appear here";
-      // Кнопка очистки истории
-      const clearBtn = document.getElementById("clearHistoryButton");
-      if (clearBtn) clearBtn.lastChild.textContent = t("clearAll") || "Clear All";
-      // Заголовок истории
-      const histTitle = document.querySelector(".history-header h3");
-      if (histTitle) histTitle.textContent = t("recentPasswords") || "Recent Passwords";
-      // Пустое состояние истории
-      const emptyState = document.querySelector(".empty-state p");
-      if (emptyState) emptyState.textContent = t("noHistory") || "No password history yet";
-      // Переводим значение длины пароля
-      if (lengthValue) lengthValue.textContent = passwordLengthInput.value;
-      // Переводим подписи для чекбоксов (on/off)
-      [
-        { id: "lowercase", label: "lowercase" },
-        { id: "uppercase", label: "uppercase" },
-        { id: "numbers", label: "numbers" },
-        { id: "special", label: "special" },
-        { id: "excludeSimilar", label: "excludeSimilar" },
-        { id: "excludeAmbiguous", label: "excludeAmbiguous" },
-      ].forEach(({ id, label }) => {
-        const el = document.getElementById(id);
-        if (el) {
-          const parent = el.closest("label");
-          if (parent) {
-            const span = parent.querySelector("span");
-            if (span) span.textContent = t(label);
+          masterPasswordUI.focusPrompt?.();
+          if (event?.target) event.target.checked = true;
+          return;
+        }
+        await handleDisableEncryption(MasterPasswordService.getCurrentMasterPassword(), event);
+      }
+    }
+  }
+
+  function handlePasswordLoadFromHistory(passwordValue) {
+    if (passwordOutput) {
+      passwordOutput.value = passwordValue;
+      updateStrengthMeterUI(passwordValue);
+      showToast(t("passwordLoadedFromHistory"));
+      switchToTabFromTabsUI("generator");
+    }
+  }
+
+  // --- Initial Load Sequence ---
+  async function main() {
+    try {
+      getDOMElements();
+
+      // Init services
+      MasterPasswordService.initMasterPasswordService({
+        passwordStorage, t, showToast,
+        uiCallbacks: {
+          showMasterPasswordSetupError: masterPasswordUI.showSetupError,
+          clearMasterPasswordForms: masterPasswordUI.clearPasswordsAndErrors,
+          hideAllMasterPasswordSections: masterPasswordUI.hideAllMasterPasswordSections,
+          focusMasterPasswordPrompt: masterPasswordUI.focusPrompt,
+          updateMasterPasswordUIVisibility: masterPasswordUI.updateMasterPasswordVisibility,
+          onMasterPasswordSet: async () => {
+            settingsUI.updateEnableEncryptionToggle(true);
+            await refreshHistoryDisplay();
+          },
+          onMasterPasswordChange: () => refreshHistoryDisplay(),
+          onMasterPasswordRemoved: async () => {
+            settingsUI.updateEnableEncryptionToggle(false);
+            await refreshHistoryDisplay();
+          },
+          onMasterPasswordPromptSuccess: async (masterPassword) => {
+            if (MasterPasswordService.isAwaitingMPForEncryptionDisable()) {
+              await handleDisableEncryption(masterPassword, MasterPasswordService.getPendingDisableEncryptionEvent());
+            } else {
+              await refreshHistoryDisplay();
+            }
           }
         }
       });
-      loadPasswordHistory(passwordStorage, historyList, createHistoryItem, applyVisibilityState);
-      // Переводим заголовок группы длины пароля
-      const lengthGroupLabel = document.querySelector('.length-option label span');
-      if (lengthGroupLabel) lengthGroupLabel.textContent = t('passwordLength');
-      // Переводим заголовок группы Character Types
-      const charTypesGroup = document.querySelectorAll('.options-group h3')[0];
-      if (charTypesGroup) charTypesGroup.textContent = t('charTypes');
-      // Переводим заголовок группы Exclusions
-      const exclusionsGroup = document.querySelectorAll('.options-group h3')[1];
-      if (exclusionsGroup) exclusionsGroup.textContent = t('exclusions');
-      // Переводим заголовок Password Strength
-      const strengthLabel = document.querySelector('[data-i18n="passwordStrength"]');
-      if (strengthLabel) strengthLabel.textContent = t('passwordStrength');
-      // Перерисовать label силы пароля
-      updateStrengthMeter(passwordOutput.value);
-    });
+
+      PasswordService.initPasswordService({
+        passwordGenerator, passwordStorage, MasterPasswordService, t, logEvent, logError,
+        uiStateProviders: {
+            getGenerationOptions: passwordGenerationUI.getGenerationOptions,
+            getMnemonicSettings: getMnemonicSettings
+        },
+        uiUpdaters: {
+            updatePasswordOutput: passwordGenerationUI.updatePasswordOutputValue,
+            updateStrengthMeter: updateStrengthMeterUI,
+            showToast: showToast,
+            copyToClipboard: copyToClipboard,
+            showMasterPasswordPrompt: masterPasswordUI.showPrompt,
+            focusMasterPasswordPrompt: masterPasswordUI.focusPrompt
+        },
+        historyUpdaters: {
+            invalidateHistoryCache,
+            refreshHistoryDisplay
+        }
+      });
+      
+      SettingsService.initSettingsService({
+        passwordStorage, MasterPasswordService, t,
+        uiStateProviders: {
+          getGenerationOptions: passwordGenerationUI.getGenerationOptions,
+          getMnemonicSettings: getMnemonicSettings,
+          getEnableEncryptionToggleState: settingsUI.getEnableEncryptionToggleState
+        },
+        uiUpdaters: {
+          updatePasswordGenerationUI: passwordGenerationUI.updatePasswordGenerationUI,
+          updateMnemonicUI: updateMnemonicUICallback,
+          updateEnableEncryptionToggle: settingsUI.updateEnableEncryptionToggle,
+          showToast
+        }
+      });
+
+      // Init UI modules
+      passwordGenerationUI.initPasswordGenerationUI(SettingsService.saveSettings);
+      initMnemonicUI(SettingsService.saveSettings);
+      masterPasswordUI.initMasterPasswordUI({
+          onSetMasterPasswordAttempt: MasterPasswordService.attemptSetMasterPassword,
+          onChangeMasterPasswordAttempt: MasterPasswordService.attemptChangeMasterPassword,
+          onSubmitPromptedPassword: MasterPasswordService.handleSubmitPromptedMasterPassword,
+          onBeginChangeMasterPassword: MasterPasswordService.prepareForChange,
+          validateMasterPassword: MasterPasswordService.validateMasterPassword,
+          isChangingProvider: MasterPasswordService.isChanging,
+          t
+      });
+
+      const initialSettings = await SettingsService.loadSettingsAndApply();
+      settingsUI.initSettingsUI(passwordStorage, initialSettings, SettingsService.saveSettings);
+      initTabsUI(handleTabSwitched);
+      
+      await initHistoryUI({
+        passwordStorageInstance: passwordStorage,
+        masterPasswordProviderFunc: MasterPasswordService.getCurrentMasterPassword,
+        callbacksObj: { showConfirmDialog, getLocalizedText: t, showToast, onPasswordLoad: handlePasswordLoadFromHistory, showMasterPasswordPrompt: masterPasswordUI.showPrompt, focusMasterPasswordPrompt: masterPasswordUI.focusPrompt },
+        utilsObj: { getCachedHistory, invalidateHistoryCache, logError, logEvent, copyToClipboard }
+      });
+      
+      const initialLang = (initialSettings.uiSettings?.lang) || await passwordStorage.getLanguage() || 'en';
+      await setLang(initialLang);
+      localizeAll();
+
+      await initializeTheme(passwordStorage, null, document.querySelectorAll(".theme-options-row .theme-option"));
+      
+      setupEventListeners();
+
+      if (!passwordOutput.value) {
+        await PasswordService.generatePasswordAndSave();
+      }
+      updateStrengthMeterUI(passwordOutput.value);
+
+      await MasterPasswordService.triggerMasterPasswordUIVisibilityUpdate();
+      
+      logEvent('popup_initialized_successfully');
+
+    } catch (error) {
+      logError(error, "popup_initialization_failed");
+      showToast('Error initializing extension', 'error');
+    }
   }
 
-  // Lazy loading для всех внутренних модулей
-  async function lazyLoad(modulePath) {
-    return (await import(modulePath)).default;
-  }
-  // Пример использования:
-  // const PasswordGenerator = await lazyLoad("../js/passwordGenerator.js");
-  // const PasswordStorage = await lazyLoad("../js/storage.js");
-  // ... и так далее
-  // В реальном коде можно заменить прямые импорты на lazyLoad при необходимости
+  main();
 });

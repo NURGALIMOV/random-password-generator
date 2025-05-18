@@ -44,7 +44,7 @@ module.exports = {
         { from: 'src/manifest.json', to: '.' },
         { from: 'src/icons', to: 'icons' },
         { from: 'src/popup/popup.css', to: 'popup/popup.css' },
-        { from: 'src/popup/locales', to: 'popup/locales' }
+        { from: 'src/_locales', to: '_locales' }
       ],
     }),
     new HtmlWebpackPlugin({

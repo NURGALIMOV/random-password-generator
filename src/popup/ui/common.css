@@ -1,0 +1,57 @@
+/* Common UI Component Styles */
+
+/* Generic Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-gray-400);
+  transition: var(--transition-slow);
+  border-radius: 24px; /* Consistent with height for pill shape */
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px; /* Slightly smaller than slider height */
+  width: 18px;  /* Slightly smaller than slider height */
+  left: 3px;    /* Padding from edge */
+  bottom: 3px;  /* Padding from edge */
+  background-color: var(--color-white);
+  transition: var(--transition-slow);
+  border-radius: var(--radius-full);
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--color-primary);
+}
+
+input:focus + .toggle-slider {
+  box-shadow: 0 0 1px var(--color-primary); /* Focus indicator */
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(16px); /* (Switch Width - Knob Width - 2*Padding) = 40 - 18 - 2*3 = 16 (approx) */
+} 

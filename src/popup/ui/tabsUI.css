@@ -1,0 +1,76 @@
+.tabs {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex: none; /* Prevent tabs from shrinking if content below is too large */
+}
+
+.tab-header {
+  display: flex;
+  border-bottom: 1px solid var(--color-gray-300);
+  margin-bottom: var(--space-xxl);
+}
+
+.tab-button {
+  flex: 1;
+  background-color: transparent;
+  border: none;
+  padding: var(--space-lg) 0;
+  cursor: pointer;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-tight);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  position: relative;
+  transition: all var(--transition-fast);
+}
+
+.tab-button svg {
+  opacity: 0.7;
+}
+
+.tab-button.active {
+  color: var(--color-primary);
+}
+
+.tab-button.active svg {
+  opacity: 1;
+}
+
+.tab-button.active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 25%;
+  width: 50%;
+  height: 3px;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.tab-content {
+  display: block; /* Use display none/block for collapse, or manage height/opacity */
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  transition: opacity var(--transition-normal), visibility var(--transition-normal), height var(--transition-normal);
+  visibility: hidden;
+}
+
+.tab-content.active {
+  opacity: 1;
+  height: auto; /* Or a calculated height if needed */
+  visibility: visible;
+  overflow: visible; /* Allow content to be seen */
+}
+
+/* This state might be more cleanly handled by just not having .active */
+.tab-content.collapsed {
+  height: 0;
+  opacity: 0;
+  visibility: hidden;
+  display: none; /* Add display:none to ensure it's fully collapsed and not focusable */
+} 

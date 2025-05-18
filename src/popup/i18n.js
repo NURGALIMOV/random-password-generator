@@ -1,24 +1,16 @@
 import en from "./locales/en.js";
-import ru from "./locales/ru.js";
 
-const locales = { en, ru };
-let currentLang = localStorage.getItem("lang");
-if (!currentLang) {
-  currentLang = navigator.language.startsWith("ru") ? "ru" : "en";
-  localStorage.setItem("lang", currentLang);
-}
+const locales = { en };
+let currentLang = 'en';
 
 export function setLang(lang) {
-  if (locales[lang]) {
-    currentLang = lang;
-    localStorage.setItem("lang", lang);
-  }
+  currentLang = 'en';
 }
 
 export function getCurrentLang() {
-  return currentLang;
+  return 'en';
 }
 
 export function t(key) {
-  return locales[currentLang][key] || locales['en'][key] || key;
+  return locales['en'][key] || key;
 } 

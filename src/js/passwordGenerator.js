@@ -2,7 +2,7 @@
  * Module for generating random passwords with configurable options
  */
 import { t } from "../popup/i18n.js";
-import { getCryptoRandomInt } from "../popup/helpers.js";
+import { getCryptoRandomInt, mnemonicWordList } from "../popup/helpers.js";
 
 const LOWERCASE_CHARS = "abcdefghijklmnopqrstuvwxyz";
 const UPPERCASE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -34,6 +34,7 @@ class PasswordGenerator {
    * @param {boolean} options.special - Использовать спецсимволы
    * @param {boolean} options.excludeSimilar - Исключить похожие символы
    * @param {boolean} options.excludeAmbiguous - Исключить неоднозначные символы
+   * @param {string} options.template - Шаблон для генерации пароля
    * @returns {string} Сгенерированный пароль
    */
   generatePassword(options) {
@@ -43,151 +44,105 @@ class PasswordGenerator {
       uppercase = true,
       numbers = true,
       special = true,
-      excludeSimilar = false,
-      excludeAmbiguous = false,
+      template = ""
     } = options;
 
-    if (!lowercase && !uppercase && !numbers && !special) {
-      throw new Error("At least one character set must be selected");
+    if (!lowercase && !uppercase && !numbers && !special && !(template && template.trim().length > 0) ) {
+      throw new Error(t("errorNoCharSetSelected") || "At least one character set must be selected or a template provided.");
     }
 
-    if (length < 4 || length > 64) {
-      throw new Error("Password length must be between 4 and 64 characters");
+    // Length validation applies primarily to non-template, but template output also implicitly has a length.
+    if (!(template && template.trim().length > 0) && (length < 4 || length > 64)) {
+      throw new Error(t("errorInvalidPasswordLength") || "Password length must be between 4 and 64 characters for non-template mode.");
     }
 
-    // Сначала формируем наборы символов для каждого типа с учётом исключений
-    let lowercaseChars = lowercase ? this.lowercaseChars : "";
-    let uppercaseChars = uppercase ? this.uppercaseChars : "";
-    let numberChars = numbers ? this.numberChars : "";
-    let specialChars = special ? this.specialChars : "";
+    const charSets = this._buildCharacterSets(options);
 
-    if (excludeSimilar) {
-      for (const char of this.similarChars) {
-        if (lowercaseChars) lowercaseChars = lowercaseChars.replace(new RegExp(char, "g"), "");
-        if (uppercaseChars) uppercaseChars = uppercaseChars.replace(new RegExp(char, "g"), "");
-        if (numberChars) numberChars = numberChars.replace(new RegExp(char, "g"), "");
-        if (specialChars) specialChars = specialChars.replace(new RegExp(char, "g"), "");
+    if (!charSets.allAllowed && !(template && template.trim().length > 0 && options.templateAllowsLiterals === true /* hypothetical future option */ )) {
+        // If not even literals are allowed in template, and all charsets are empty, then error.
+        // The check for charSets.allAllowed inside _generateFromTemplate handles cases where specific template chars (L,U,l etc) have no pool.
+        // This top-level check is for when *nothing* is available for generation.
+        if (!template || template.trim().length === 0 || !this._templateContainsOnlyPlaceholders(template, charSets)) {
+            throw new Error(t("errorNoAvailableChars") || "No available characters for password generation after applying exclusions. Check your settings.");
+        }
+    }
+    
+    if (template && template.trim().length > 0) {
+      return this._generateFromTemplate(template.trim(), charSets);
+    } else {
+      return this._generateStandard(options, charSets);
+    }
+  }
+
+  _generateFromTemplate(template, charSets) {
+    let result = "";
+    if (!charSets.allAllowed) {
+      throw new Error(t("errorNoCharsForTemplate") || "No available characters for template-based generation. Check your settings.");
+    }
+    for (let i = 0; i < template.length; i++) {
+      const c = template[i];
+      if (c === "L") {
+        if (!charSets.allLetters) throw new Error(t("errorNoLettersForTemplateL") || "No letters available for 'L' in template.");
+        result += this._getRandomChar(charSets.allLetters);
+      } else if (c === "U") {
+        if (!charSets.uppercase) throw new Error(t("errorNoUppercaseForTemplateU") || "No uppercase letters available for 'U' in template.");
+        result += this._getRandomChar(charSets.uppercase);
+      } else if (c === "l") {
+        if (!charSets.lowercase) throw new Error(t("errorNoLowercaseForTemplatel") || "No lowercase letters available for 'l' in template.");
+        result += this._getRandomChar(charSets.lowercase);
+      } else if (c === "#") {
+        if (!charSets.numbers) throw new Error(t("errorNoDigitsForTemplateHash") || "No digits available for '#' in template.");
+        result += this._getRandomChar(charSets.numbers);
+      } else if (c === "@") {
+        if (!charSets.special) throw new Error(t("errorNoSpecialForTemplateAt") || "No special characters available for '@' in template.");
+        result += this._getRandomChar(charSets.special);
+      } else if (c === "*") {
+        result += this._getRandomChar(charSets.allAllowed);
+      } else {
+        result += c; // Insert literal character
       }
     }
+    return result;
+  }
 
-    if (excludeAmbiguous) {
-      for (const char of this.ambiguousChars) {
-        const escapedChar = char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        if (lowercaseChars) lowercaseChars = lowercaseChars.replace(new RegExp(escapedChar, "g"), "");
-        if (uppercaseChars) uppercaseChars = uppercaseChars.replace(new RegExp(escapedChar, "g"), "");
-        if (numberChars) numberChars = numberChars.replace(new RegExp(escapedChar, "g"), "");
-        if (specialChars) specialChars = specialChars.replace(new RegExp(escapedChar, "g"), "");
-      }
-    }
-
-    let availableChars = "";
+  _generateStandard(options, charSets) {
+    const { length } = options;
+    let password = "";
     let requiredChars = [];
 
-    if (lowercase && lowercaseChars) {
-      availableChars += lowercaseChars;
-      requiredChars.push(this._getRandomChar(lowercaseChars));
+    if (options.lowercase && charSets.lowercase) {
+      requiredChars.push(this._getRandomChar(charSets.lowercase));
     }
-    if (uppercase && uppercaseChars) {
-      availableChars += uppercaseChars;
-      requiredChars.push(this._getRandomChar(uppercaseChars));
+    if (options.uppercase && charSets.uppercase) {
+      requiredChars.push(this._getRandomChar(charSets.uppercase));
     }
-    if (numbers && numberChars) {
-      availableChars += numberChars;
-      requiredChars.push(this._getRandomChar(numberChars));
+    if (options.numbers && charSets.numbers) {
+      requiredChars.push(this._getRandomChar(charSets.numbers));
     }
-    if (special && specialChars) {
-      availableChars += specialChars;
-      requiredChars.push(this._getRandomChar(specialChars));
+    if (options.special && charSets.special) {
+      requiredChars.push(this._getRandomChar(charSets.special));
     }
 
-    if (!availableChars) {
-      throw new Error("Нет доступных символов для генерации пароля. Проверьте настройки.");
+    if (requiredChars.length > length) {
+        // This case should be rare if length validation (min 4) is done before, 
+        // but if all types are required and length is too small, we prioritize filling length.
+        this._shuffleArray(requiredChars);
+        password = requiredChars.slice(0, length).join('');
+        return this._shuffleString(password); // Ensure final shuffle
     }
-
-    let password = "";
 
     if (requiredChars.length > 0) {
       this._shuffleArray(requiredChars);
       password = requiredChars.join("");
     }
 
-    while (password.length < length) {
-      password += this._getRandomChar(availableChars);
+    const remainingLength = length - password.length;
+    for (let i = 0; i < remainingLength; i++) {
+      if (!charSets.allAllowed) break; // Should have been caught earlier by allAllowed check
+      password += this._getRandomChar(charSets.allAllowed);
     }
-
+    
     return this._shuffleString(password);
-  }
-
-  /**
-   * Оценивает силу пароля
-   * @param {string} password - Пароль для оценки
-   * @returns {{score: number, label: string}} Результат оценки
-   */
-  calculateStrength(password) {
-    if (!password) return { score: 0, label: "None" };
-
-    let score = 0;
-    const length = password.length;
-
-    score += Math.min(length * 4, 40);
-
-    const hasLower = /[a-z]/.test(password);
-    const hasUpper = /[A-Z]/.test(password);
-    const hasNumber = /\d/.test(password);
-    const hasSpecial = /[^a-zA-Z0-9]/.test(password);
-
-    const typesCount = [hasLower, hasUpper, hasNumber, hasSpecial].filter(Boolean).length;
-    score += typesCount * 10;
-
-    if (hasLower && hasUpper) score += 5;
-    if ((hasLower || hasUpper) && hasNumber) score += 5;
-    if ((hasLower || hasUpper || hasNumber) && hasSpecial) score += 5;
-
-    let repeats = 0;
-    const chars = {};
-
-    for (const char of password) {
-      chars[char] = (chars[char] || 0) + 1;
-    }
-
-    for (const char in chars) {
-      if (chars[char] > 1) {
-        repeats += chars[char] - 1;
-      }
-    }
-
-    score -= repeats * 2;
-
-    let sequenceCount = 0;
-    for (let i = 0; i < password.length - 2; i++) {
-      const c1 = password.charCodeAt(i);
-      const c2 = password.charCodeAt(i + 1);
-      const c3 = password.charCodeAt(i + 2);
-
-      if ((c1 + 1 === c2 && c2 + 1 === c3) || (c1 - 1 === c2 && c2 - 1 === c3)) {
-        sequenceCount++;
-      }
-    }
-    score -= sequenceCount * 3;
-
-    const commonWords = ["password", "123456", "qwerty", "admin", "welcome", "letmein"];
-    for (const word of commonWords) {
-      if (password.toLowerCase().includes(word)) {
-        score -= 10;
-        break;
-      }
-    }
-
-    score = Math.max(0, Math.min(score, 100));
-
-    let label;
-    if (score <= 40) label = t("veryWeak");
-    else if (score < 50) label = t("weak");
-    else if (score < 65) label = t("medium");
-    else if (score < 80) label = t("strong");
-    else label = t("veryStrong");
-
-    return { score, label };
   }
 
   /**
@@ -225,6 +180,185 @@ class PasswordGenerator {
     const array = str.split("");
     this._shuffleArray(array);
     return array.join("");
+  }
+
+  /**
+   * Генерирует мнемонический пароль с расширенными опциями
+   * @param {Object} options
+   * @returns {string} Мнемонический пароль
+   */
+  generateMnemonicPassword(options) {
+    let {
+      wordCount = 4,
+      separator = "-",
+      caseType = "lower",
+      mnemonicCustomWordsArray = [],
+      useOnlyCustom = false,
+      minWordLen,
+      maxWordLen,
+      noRepeats = false,
+      prefix = "",
+      suffix = "",
+      randomCase = false,
+      leet = false,
+      addYear = false,
+      yearPos = "none",
+      shuffle = false,
+      insertBetween = false,
+      insertInside = false
+    } = options;
+
+    // Parse custom words - Now directly use mnemonicCustomWordsArray if it's an array
+    let userWords = [];
+    if (Array.isArray(mnemonicCustomWordsArray)) {
+      userWords = mnemonicCustomWordsArray.map(w => String(w).trim()).filter(Boolean);
+    }
+    
+    let baseWordList = useOnlyCustom ? userWords : [...mnemonicWordList, ...userWords];
+
+    // Filter by min/max word length
+    if (minWordLen) baseWordList = baseWordList.filter(w => w.length >= parseInt(minWordLen));
+    if (maxWordLen) baseWordList = baseWordList.filter(w => w.length <= parseInt(maxWordLen));
+    if (baseWordList.length === 0) baseWordList = [...mnemonicWordList]; // fallback
+
+    // Shuffle word list if needed
+    let wordList = [...baseWordList];
+    if (shuffle) this._shuffleArray(wordList);
+
+    // Pick words
+    let chosen = [];
+    let used = new Set();
+    for (let i = 0; i < wordCount; i++) {
+      let pool = noRepeats ? wordList.filter(w => !used.has(w)) : wordList;
+      if (pool.length === 0) pool = [...baseWordList];
+      let word = pool[getCryptoRandomInt(pool.length)];
+      if (noRepeats) used.add(word);
+      chosen.push(word);
+    }
+
+    // Apply case
+    chosen = chosen.map(word => {
+      if (randomCase) {
+        const r = getCryptoRandomInt(3);
+        if (r === 0) return word.toLowerCase();
+        if (r === 1) return word.toUpperCase();
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      } else if (caseType === "upper") return word.toUpperCase();
+      else if (caseType === "capitalized") return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      else return word.toLowerCase();
+    });
+
+    // Leet substitutions
+    if (leet) {
+      const leetMap = { a: "@", o: "0", e: "3", i: "1", s: "$", l: "1", t: "+", b: "8", g: "9" };
+      chosen = chosen.map(word => word.replace(/[aoeisl tbg]/gi, c => leetMap[c.toLowerCase()] || c));
+    }
+
+    // Insert number/symbol between words
+    if (insertBetween) {
+      const symbols = "0123456789!@#$%^&*";
+      let withInserts = [];
+      for (let i = 0; i < chosen.length; i++) {
+        withInserts.push(chosen[i]);
+        if (i < chosen.length - 1) {
+          withInserts.push(symbols[getCryptoRandomInt(symbols.length)]);
+        }
+      }
+      chosen = withInserts;
+    }
+
+    // Insert number/symbol inside words
+    if (insertInside) {
+      const symbols = "0123456789!@#$%^&*";
+      chosen = chosen.map(word => {
+        if (word.length < 2) return word;
+        const pos = getCryptoRandomInt(word.length + 1);
+        const sym = symbols[getCryptoRandomInt(symbols.length)];
+        return word.slice(0, pos) + sym + word.slice(pos);
+      });
+    }
+
+    // Add year/date
+    let yearStr = "";
+    if (addYear) {
+      const now = new Date();
+      yearStr = now.getFullYear().toString();
+    }
+
+    // Add prefix/suffix
+    let result = chosen.join(separator);
+    if (prefix) result = prefix + (separator || '') + result;
+    if (suffix) result = result + (separator || '') + suffix;
+    if (addYear && yearPos === "start") result = yearStr + (separator || '') + result;
+    if (addYear && yearPos === "end") result = result + (separator || '') + yearStr;
+
+    return result;
+  }
+
+  _buildCharacterSets(options) {
+    const {
+      lowercase = true,
+      uppercase = true,
+      numbers = true,
+      special = true,
+      excludeSimilar = false,
+      excludeAmbiguous = false,
+    } = options;
+
+    let localLowercaseChars = lowercase ? this.lowercaseChars : "";
+    let localUppercaseChars = uppercase ? this.uppercaseChars : "";
+    let localNumberChars = numbers ? this.numberChars : "";
+    let localSpecialChars = special ? this.specialChars : "";
+
+    if (excludeSimilar) {
+      const similarRegex = new RegExp(`[${this.similarChars}]`, "g");
+      if (localLowercaseChars) localLowercaseChars = localLowercaseChars.replace(similarRegex, "");
+      if (localUppercaseChars) localUppercaseChars = localUppercaseChars.replace(similarRegex, "");
+      if (localNumberChars) localNumberChars = localNumberChars.replace(similarRegex, "");
+      // Special characters are less likely to be 'similar' in the iIlL1oO0 sense, but consider if needed
+      // if (localSpecialChars) localSpecialChars = localSpecialChars.replace(similarRegex, ""); 
+    }
+
+    if (excludeAmbiguous) {
+      // Escape ambiguous characters for use in RegExp, as they might include regex special chars
+      const ambiguousRegex = new RegExp(`[${this.ambiguousChars.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}]`, "g");
+      if (localLowercaseChars) localLowercaseChars = localLowercaseChars.replace(ambiguousRegex, "");
+      if (localUppercaseChars) localUppercaseChars = localUppercaseChars.replace(ambiguousRegex, "");
+      if (localNumberChars) localNumberChars = localNumberChars.replace(ambiguousRegex, "");
+      if (localSpecialChars) localSpecialChars = localSpecialChars.replace(ambiguousRegex, "");
+    }
+
+    const allLetters = localLowercaseChars + localUppercaseChars;
+    let allAllowed = "";
+    if (localLowercaseChars) allAllowed += localLowercaseChars;
+    if (localUppercaseChars) allAllowed += localUppercaseChars;
+    if (localNumberChars) allAllowed += localNumberChars;
+    if (localSpecialChars) allAllowed += localSpecialChars;
+
+    return {
+      lowercase: localLowercaseChars,
+      uppercase: localUppercaseChars,
+      numbers: localNumberChars,
+      special: localSpecialChars,
+      allLetters: allLetters,
+      allAllowed: allAllowed,
+    };
+  }
+
+  // Helper to check if template can still generate if all charsets are empty (e.g. template is just "-!-")
+  _templateContainsOnlyPlaceholders(template, charSets) {
+    for (const char of template) {
+        if (['L', 'U', 'l', '#', '@', '*'].includes(char)) {
+            // If any placeholder is present, it requires a character set
+            if (char === 'L' && !charSets.allLetters) return false;
+            if (char === 'U' && !charSets.uppercase) return false;
+            if (char === 'l' && !charSets.lowercase) return false;
+            if (char === '#' && !charSets.numbers) return false;
+            if (char === '@' && !charSets.special) return false;
+            if (char === '*' && !charSets.allAllowed) return false;
+        }
+    }
+    return true; // Contains no placeholders or all placeholders have available chars
   }
 }
 

@@ -114,7 +114,6 @@ body {
 
 .container {
   width: 360px;
-  min-height: 480px;
   background-color: var(--color-bg);
   padding: var(--space-xl);
   display: flex;
@@ -169,8 +168,7 @@ h1 {
   gap: var(--space-sm);
 }
 
-#togglePasswordButton,
-#copyButton {
+.password-action-btn {
   background-color: transparent;
   border: none;
   cursor: pointer;
@@ -183,8 +181,7 @@ h1 {
   transition: all var(--transition-fast);
 }
 
-#togglePasswordButton:hover,
-#copyButton:hover {
+.password-action-btn:hover {
   background-color: var(--color-primary-light);
 }
 
@@ -245,9 +242,98 @@ h1 {
   width: 75%;
 }
 
+#strengthText.veryStrong,
 #strengthIndicator.very-strong {
   background-color: var(--color-success-dark);
   width: 100%;
+}
+
+.strength-label .strength-status {
+  display: flex;
+  align-items: center;
+}
+
+/* Strength Details */
+.strength-details-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-xs);
+  margin-left: var(--space-sm);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  transition: background-color var(--transition-fast);
+}
+.strength-details-toggle:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+.strength-details-toggle .arrow-icon {
+  transition: transform var(--transition-fast);
+}
+
+.strength-details-toggle.open .arrow-icon {
+  transform: rotate(180deg);
+}
+
+.strength-details-content {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.strength-feedback-section h4 {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-sm);
+}
+
+.strength-feedback-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.strength-feedback-section li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: var(--font-size-xs);
+}
+
+.strength-feedback-section li svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+#strengthWarnings li {
+  color: var(--color-warning);
+}
+#strengthWarnings li svg {
+  stroke: var(--color-warning);
+}
+
+#strengthSuggestions li {
+  color: var(--color-success);
+}
+#strengthSuggestions li svg {
+  stroke: var(--color-success);
 }
 
 #generateButton {
@@ -272,490 +358,140 @@ h1 {
 }
 
 #generateButton:active {
-  transform: translateY(0);
+  transform: scale(0.98);
 }
 
-.tabs {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.tab-header {
-  display: flex;
-  border-bottom: 1px solid var(--color-gray-300);
-  margin-bottom: var(--space-xxl);
-}
-
-.tab-button {
-  flex: 1;
-  background-color: transparent;
-  border: none;
-  padding: var(--space-lg) 0;
-  cursor: pointer;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: var(--letter-spacing-tight);
-  color: var(--color-text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-md);
-  position: relative;
-  transition: all var(--transition-fast);
-}
-
-.tab-button svg {
-  opacity: 0.7;
-}
-
-.tab-button.active {
-  color: var(--color-primary);
-}
-
-.tab-button.active svg {
-  opacity: 1;
-}
-
-.tab-button.active::after {
-  content: "";
-  position: absolute;
-  bottom: -1px;
-  left: 25%;
-  width: 50%;
-  height: 3px;
-  background-color: var(--color-primary);
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-}
-
-.tab-content {
-  display: none;
-  flex-grow: 1;
-}
-
-.tab-content.active {
-  display: block;
-}
-
-.options-group {
-  margin-bottom: var(--space-xxl);
-  padding-bottom: var(--space-lg);
-  border-bottom: 1px solid var(--color-gray-200);
-}
-
-.options-group h3 {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-tight);
-  margin-bottom: var(--space-lg);
-  color: #4f4f4f;
-}
-
-.option {
-  margin-bottom: var(--space-lg);
-}
-
-.option label {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-normal);
-}
-
-.length-option label {
-  margin-bottom: var(--space-md);
-}
-
-.slider {
-  width: 100%;
-  height: var(--space-md);
-  border-radius: var(--radius-md);
-  background: var(--color-gray-300);
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-  cursor: pointer;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: var(--radius-full);
-  background: var(--color-primary);
-  cursor: pointer;
-  border: none;
-  box-shadow: var(--shadow-sm);
-}
-
-.slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  border-radius: var(--radius-full);
-  background: var(--color-primary);
-  cursor: pointer;
-  border: none;
-  box-shadow: var(--shadow-sm);
-}
-
-/* Toggle Switch */
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 24px;
-}
-
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--color-gray-400);
-  transition: var(--transition-slow);
-  border-radius: 24px;
-}
-
-.toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  bottom: 3px;
-  background-color: var(--color-white);
-  transition: var(--transition-slow);
-  border-radius: var(--radius-full);
-}
-
-input:checked + .toggle-slider {
-  background-color: var(--color-primary);
-}
-
-input:focus + .toggle-slider {
-  box-shadow: 0 0 1px var(--color-primary);
-}
-
-input:checked + .toggle-slider:before {
-  transform: translateX(16px);
-}
-
-.history-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-lg);
-}
-
-.history-header .history-actions {
-  display: flex;
-  gap: var(--space-sm);
-}
-
-#toggleHistoryVisibilityButton,
-#clearHistoryButton {
-  background-color: transparent;
-  border: none;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  font-size: var(--font-size-xs);
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-lg);
-  border-radius: var(--radius-lg);
-  transition: all var(--transition-fast);
-}
-
-#toggleHistoryVisibilityButton:hover,
-#clearHistoryButton:hover {
-  background-color: var(--color-gray-200);
-  color: var(--color-primary);
-}
-
-#clearHistoryButton:hover {
-  color: var(--color-error);
-}
-
-.history-list {
-  max-height: 180px;
-  overflow-y: auto;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-gray-300);
-}
-
-.history-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-lg);
-  border-bottom: 1px solid var(--color-gray-200);
-  transition: background-color var(--transition-fast);
-}
-
-.history-item:hover {
-  background-color: var(--color-gray-100);
-}
-
-.history-item:last-child {
-  border-bottom: none;
-}
-
-.history-password {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-  padding-right: var(--space-lg);
-  font-family: var(--font-family-mono);
-  position: relative;
-}
-
-.history-password[title] {
-  cursor: help;
-}
-
-.history-password[title]:hover::after {
-  content: attr(title);
-  position: absolute;
-  bottom: 100%;
+#toastContainer {
+  position: fixed;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  padding: var(--space-sm) var(--space-md);
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-xs);
-  white-space: nowrap;
-  z-index: 1000;
-  margin-bottom: var(--space-sm);
-  box-shadow: var(--shadow-md);
-}
-
-.history-password[title]:hover::before {
-  content: "";
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: var(--color-primary);
-  margin-bottom: -6px;
-}
-
-.history-password.masked {
-  -webkit-text-security: disc;
-}
-
-.history-actions {
-  display: flex;
-  gap: var(--space-md);
-}
-
-.history-copy,
-.history-delete {
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-md);
-  border-radius: var(--radius-md);
-  color: var(--color-text-secondary);
-  transition: all var(--transition-fast);
-}
-
-.history-copy:hover {
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
-}
-
-.history-delete:hover {
-  background-color: var(--color-error-light);
-  color: var(--color-error);
-}
-
-.empty-state {
+  z-index: 1001;
   display: flex;
   flex-direction: column;
+  gap: 10px;
   align-items: center;
-  justify-content: center;
-  padding: var(--space-3xl) 0;
-  color: var(--color-text-light);
-  gap: var(--space-md);
 }
 
-.empty-state svg {
-  stroke: var(--color-gray-400);
-}
-
-.copy-message {
-  position: fixed;
-  top: var(--space-3xl);
-  left: 50%;
-  transform: translateX(-50%) translateY(-100px);
-  background-color: var(--color-primary);
-  color: var(--color-white);
+.toast {
   padding: 10px 20px;
-  border-radius: var(--radius-xl);
-  font-size: var(--font-size-xs);
+  border-radius: var(--radius-lg);
+  color: var(--color-white);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  letter-spacing: var(--letter-spacing-wide);
   box-shadow: var(--shadow-lg);
   opacity: 0;
-  transition:
-    transform var(--transition-normal),
-    opacity var(--transition-normal);
-  z-index: 1000;
-}
-
-.copy-message.show {
-  transform: translateX(-50%) translateY(0);
-  opacity: 1;
-}
-
-.success-message {
-  position: fixed;
-  top: var(--space-3xl);
-  left: 50%;
-  transform: translateX(-50%) translateY(-100px);
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  padding: 10px 20px;
-  border-radius: var(--radius-xl);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: var(--letter-spacing-wide);
-  box-shadow: var(--shadow-lg);
-  opacity: 0;
-  transition:
-    transform var(--transition-normal),
-    opacity var(--transition-normal);
-  z-index: 1000;
+  transform: translateY(-20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
   text-align: center;
 }
 
-.success-message.show {
-  transform: translateX(-50%) translateY(0);
+.toast.toast-success {
+  background-color: var(--color-success);
+}
+
+.toast.toast-error {
+  background-color: var(--color-error);
+}
+
+.toast.toast-warning {
+    background-color: var(--color-warning);
+}
+
+.toast.toast-info {
+    background-color: var(--color-primary);
+}
+
+.toast.show {
   opacity: 1;
+  transform: translateY(0);
+}
+
+.confirm-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1002;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.confirm-dialog.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.confirm-dialog-content {
+  background-color: var(--color-bg);
+  padding: var(--space-3xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-width: 320px;
+  text-align: center;
+}
+
+#confirmMessage {
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  margin-bottom: var(--space-xl);
 }
 
 .confirm-buttons {
   display: flex;
-  gap: var(--space-md);
-  margin-top: var(--space-md);
   justify-content: center;
+  gap: var(--space-lg);
+  margin-top: 0;
 }
 
-.confirm-yes,
-.confirm-no {
-  background-color: var(--color-white);
-  color: var(--color-primary);
+#confirmYes,
+#confirmNo {
+  flex: 1;
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   border: none;
-  padding: var(--space-sm) var(--space-lg);
   border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  transition: all var(--transition-fast);
-}
-
-.confirm-yes:hover {
-  background-color: var(--color-success);
-  color: var(--color-white);
-}
-
-.confirm-no:hover {
-  background-color: var(--color-error);
-  color: var(--color-white);
-}
-
-/* Theme Switcher */
-.theme-switcher {
-  position: absolute;
-  top: 2px;
-  right: var(--space-xl);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-}
-
-.theme-options-row {
-  display: flex;
-  gap: var(--space-sm);
-  background: transparent;
-  border-radius: var(--radius-md);
-  box-shadow: none;
-  padding: var(--space-xs) var(--space-sm);
-  align-items: center;
-  border: none;
-}
-
-#langSelect {
-  margin-left: 8px;
-  background: var(--color-bg);
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary-light);
-  border-radius: var(--radius-md);
-  padding: 2px 10px;
-  font-size: 13px;
-  height: 28px;
-  outline: none;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-}
-#langSelect:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-light);
-}
-#langSelect option {
-  color: var(--color-primary);
-  background: var(--color-bg);
-}
-
-.theme-option {
-  background: none;
-  border: none;
-  color: var(--color-primary);
-  cursor: pointer;
-  padding: 1px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   transition: background-color var(--transition-fast);
-  width: 22px;
-  height: 22px;
 }
 
-.theme-option svg {
-  width: 14px !important;
-  height: 14px !important;
+#confirmYes {
+  background-color: var(--color-primary);
+  color: var(--color-white);
 }
 
-.theme-option:hover {
-  background-color: var(--color-primary-light);
+#confirmYes:hover {
+  background-color: var(--color-primary-hover);
 }
 
-.theme-option.active {
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-light);
+#confirmNo {
+  background-color: var(--color-gray-200);
+  color: var(--color-text-secondary);
 }
 
-/* Удаляем стили выпадающего меню */
-.theme-button, .theme-dropdown, .theme-dropdown.show {
-  display: none !important;
+#confirmNo:hover {
+  background-color: var(--color-gray-300);
+}
+
+[data-theme="dark"] .confirm-dialog-content {
+  background-color: var(--color-bg-secondary);
+}
+
+[data-theme="dark"] #confirmNo {
+  background-color: var(--color-border);
+  color: var(--color-text);
+}
+
+[data-theme="dark"] #confirmNo:hover {
+  background-color: var(--color-gray-200);
 }
 
 [data-theme="dark"] #passwordOutput {
@@ -770,8 +506,248 @@ input:checked + .toggle-slider:before {
   box-shadow: 0 0 0 3px rgba(92, 124, 250, 0.2);
 }
 
-[data-theme="dark"] .history-password {
-  color: #ffffff;
-  font-weight: 500;
+main {
+  width: 100%;
+  display: block;
+  flex: none;
+  min-height: 0 !important;
+  max-height: none !important;
+  height: auto !important;
+  padding: 0;
+  margin: 0;
+}
+
+/* General form group styling */
+.form-group {
+  margin-bottom: var(--space-lg);
+}
+
+.form-group label {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+/* --- Encryption Settings Styles (lines 442-552) removed, moved to masterPasswordUI.css --- */
+
+.input-group-half {
+  display: flex;
+  gap: var(--space-md);
+}
+.input-group-half > .form-group {
+  flex: 1;
+}
+
+/* Mnemonic section styles (lines 562-874) removed as they are now in mnemonicUI.css */
+
+/* Removing remaining mnemonic styles from .form-group-vertical to the end of mnemonic specific styles */
+
+.tab-content.collapsed {
+  display: none;
+}
+
+/* Ensure tab buttons can accommodate the arrow - This can be kept or removed, 
+   depending on whether other .tab-button styling relies on flex, but for now, 
+   let's assume it might be useful for alignment of icon + text within the button if SVGs are still present.
+   If it was solely for the arrow, it could be removed. Keeping it is safer.
+*/
+.tab-button {
+ display: flex; /* Use flexbox to align items */
+ align-items: center; /* Vertically center items */
+}
+
+/* History Section */
+#historyContainer {
+  max-height: 300px; /* Adjust as needed */
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative; /* Required for virtual scrolling absolute positioning */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-top: var(--space-lg);
+}
+
+#historyList {
+  position: relative;
+  width: 100%;
+  overflow: hidden; /* To contain the absolutely positioned items */
+}
+
+.history-item {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 90px; /* Must match ITEM_HEIGHT in historyUI.js */
+  display: flex;
+  align-items: center;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.history-item-inner {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.history-item-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.history-password {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1;
+  padding-right: var(--space-lg);
+}
+
+.history-password.masked {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+
+.history-actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.history-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-xs);
+  color: var(--color-text-light);
+  transition: color var(--transition-fast);
+}
+
+.history-actions button:hover {
+  color: var(--color-primary);
+}
+
+.tags-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.tags-list {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  overflow: hidden;
+}
+
+.tag-chip {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  padding: 2px var(--space-sm);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.tag-chip .delete-tag {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  opacity: 0.6;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.tag-chip .delete-tag:hover {
+  opacity: 1;
+}
+
+.add-tag-btn {
+  background-color: var(--color-gray-200);
+  border: 1px dashed var(--color-gray-300);
+  color: var(--color-text-light);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.add-tag-btn:hover {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.add-tag-form {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.new-tag-input {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 3px var(--space-sm);
+  font-size: 12px;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  width: 100px; /* Adjust as needed */
+}
+
+.add-tag-form .cancel-add-tag {
+  background: none;
+  border: none;
+  color: var(--color-text-light);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+}
+
+.add-tag-form .cancel-add-tag:hover {
+  color: var(--color-error);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3xl) var(--space-lg);
+  text-align: center;
+  color: var(--color-text-secondary);
+  height: 100%;
+}
+
+.empty-state.error {
+    color: var(--color-error);
 }
 

@@ -6,49 +6,50 @@ import { logEvent, logError } from "./logger.js";
 let cachedHistory = null;
 
 /**
- * Загружает историю паролей и отображает в UI
- * @param {Object} passwordStorage - Хранилище паролей
- * @param {HTMLElement} historyList - Контейнер для истории
- * @param {Function} createHistoryItem - Функция создания DOM-элемента истории
- * @param {Function} applyVisibilityState - Функция применения видимости
- * @returns {Promise<void>}
+ * Загружает и кеширует историю паролей, с опциональной фильтрацией.
+ * @param {Object} passwordStorage - Хранилище паролей.
+ * @param {string | null} [masterPassword=null] - Мастер-пароль для дешифрования.
+ * @param {string} [filter=""] - Строка для фильтрации по тегам или паролям.
+ * @returns {Promise<Array<object>>} - Отфильтрованный массив истории.
  */
-export async function loadPasswordHistory(
-  passwordStorage,
-  historyList,
-  createHistoryItem,
-  applyVisibilityState,
-) {
+export async function getCachedHistory(passwordStorage, masterPassword = null, filter = "") {
+  console.log("[history.js getCachedHistory] Called. MasterPassword provided:", !!masterPassword, "Filter:", filter);
   try {
-    // Кэширование истории
-    if (!cachedHistory) {
-      cachedHistory = await passwordStorage.getHistory();
+    // Если кеш пуст, или если предоставлен мастер-пароль (подразумевая попытку расшифровки),
+    // мы должны получить данные. `invalidateHistoryCache` - основной способ принудительного обновления.
+    if (cachedHistory === null) {
+      console.log("[history.js getCachedHistory] Cache miss. Fetching fresh history from passwordStorage.getHistory()");
+      cachedHistory = await passwordStorage.getHistory(masterPassword);
+      console.log("[history.js getCachedHistory] Fetched items:", cachedHistory ? cachedHistory.length : 0);
     }
-    const history = cachedHistory;
-    historyList.innerHTML = "";
-    if (history.length === 0) {
-      const emptyState = document.createElement("div");
-      emptyState.className = "empty-state";
-      emptyState.textContent = t("noHistory");
-      historyList.appendChild(emptyState);
-      return;
+    
+    let itemsToFilter = cachedHistory || [];
+
+    if (filter) {
+      const lowerCaseFilter = filter.toLowerCase().trim();
+      if (lowerCaseFilter) {
+        itemsToFilter = itemsToFilter.filter(item => {
+          const hasTag = item.tags && item.tags.some(tag => tag.toLowerCase().includes(lowerCaseFilter));
+          const isDecrypted = item.encryptionStatus === 'decrypted' || item.encryptionStatus === 'plaintext';
+          const hasPasswordMatch = isDecrypted && item.password && item.password.toLowerCase().includes(lowerCaseFilter);
+          return hasTag || hasPasswordMatch;
+        });
+      }
     }
-    const fragment = document.createDocumentFragment();
-    history.forEach((item) => {
-      const historyItem = createHistoryItem(item);
-      fragment.appendChild(historyItem);
-    });
-    historyList.appendChild(fragment);
-    applyVisibilityState();
-    logEvent("history_rendered", { count: history.length });
+    
+    return itemsToFilter;
+
   } catch (e) {
-    logError(e, "loadPasswordHistory");
+    logError(e, "getCachedHistory");
+    return []; // Возвращаем пустой массив в случае ошибки
   }
 }
 
-function updateHistory(passwordStorage, historyList, createHistoryItem, applyVisibilityState) {
-  loadPasswordHistory(passwordStorage, historyList, createHistoryItem, applyVisibilityState);
+/* Commenting out unused function
+function updateHistory(passwordStorage, historyList, createHistoryItem, applyVisibilityState, masterPassword = null) {
+  loadPasswordHistory(passwordStorage, historyList, createHistoryItem, applyVisibilityState, masterPassword);
 }
+*/
 
 /**
  * Загружает состояние видимости истории паролей
@@ -60,21 +61,7 @@ export async function loadVisibilityState(passwordStorage) {
   return settings.historyVisible !== false; // default to true if not set
 }
 
-/**
- * Применяет состояние видимости к паролям в истории
- * @param {boolean} isHistoryVisible - Видимость истории
- */
-export function applyVisibilityState(isHistoryVisible) {
-  const historyPasswords = document.querySelectorAll(".history-password");
-  historyPasswords.forEach((password) => {
-    if (isHistoryVisible) {
-      password.classList.remove("masked");
-    } else {
-      password.classList.add("masked");
-    }
-  });
-}
-
 export function invalidateHistoryCache() {
+  console.log("[history.js invalidateHistoryCache] Cache invalidated.");
   cachedHistory = null;
 }

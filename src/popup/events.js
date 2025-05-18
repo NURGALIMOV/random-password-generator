@@ -64,9 +64,4 @@ export function initEventHandlers({
     checkbox.addEventListener("change", saveSettings);
   });
 
-  tabButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      switchTab(button.dataset.tab);
-    });
-  });
 }

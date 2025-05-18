@@ -1,0 +1,84 @@
+/* Settings UI Styles - Primarily Theme Switcher */
+
+.theme-switcher {
+  position: absolute;
+  top: 2px;
+  right: var(--space-xl);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+}
+
+.theme-options-row {
+  display: flex;
+  gap: var(--space-sm);
+  background: transparent;
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  padding: var(--space-xs) var(--space-sm);
+  align-items: center;
+  border: none;
+}
+
+/* #langSelect is currently display: none; in popup.html, so no specific styles needed here unless it becomes visible */
+
+.theme-option {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  padding: 1px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-fast);
+  width: 22px;
+  height: 22px;
+}
+
+.theme-option svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.theme-option:hover {
+  background-color: var(--color-primary-light);
+}
+
+.theme-option.active {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-lighter);
+}
+
+/* Styles for a previously hypothesized dropdown that were removed/commented out in main CSS */
+/* .theme-button, .theme-dropdown, .theme-dropdown.show { display: none !important; } */
+
+.import-export-section {
+  margin-bottom: var(--space-xl);
+  padding: var(--space-lg);
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+.import-export-section h4 {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.import-export-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 0;
+}
+
+.import-export-actions .btn {
+  flex: 1;
+} 

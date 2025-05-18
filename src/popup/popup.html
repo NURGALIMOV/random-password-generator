@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Random Password Generator</title>
     <link rel="stylesheet" href="popup.css" />
+    <link rel="stylesheet" href="ui/common.css" />
+    <link rel="stylesheet" href="ui/tabsUI.css" />
+    <link rel="stylesheet" href="ui/passwordGenerationUI.css" />
+    <link rel="stylesheet" href="ui/historyUI.css" />
+    <link rel="stylesheet" href="ui/mnemonicUI.css" />
+    <link rel="stylesheet" href="ui/masterPasswordUI.css" />
+    <link rel="stylesheet" href="ui/settingsUI.css" />
   </head>
 
   <body>
@@ -21,9 +28,8 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
           </button>
         </div>
-        <select id="langSelect" style="margin-left: 10px; margin-top: 2px; border-radius: 4px; padding: 2px 6px; font-size: 12px;">
+        <select id="langSelect" style="margin-left: 10px; margin-top: 2px; border-radius: 4px; padding: 2px 6px; font-size: 12px; display: none;">
           <option value="en">EN</option>
-          <option value="ru">RU</option>
         </select>
       </div>
 
@@ -34,63 +40,26 @@
 
       <main>
         <div class="password-display">
-          <input
-            type="password"
-            id="passwordOutput"
-            readonly
-            placeholder="Your password will appear here"
-            data-i18n-placeholder="passwordPlaceholder"
-          />
+          <input type="password" id="passwordOutput" class="password-output" data-i18n-placeholder="passwordPlaceholder" />
           <div class="password-actions">
-            <button id="togglePasswordButton" title="Show/Hide password" data-i18n-title="togglePassword">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="eye-icon"
-              >
+            <button id="addPasswordButton" class="password-action-btn" data-i18n-title="addPassword" aria-label="Add password" style="display: none;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button id="copyButton" class="password-action-btn" data-i18n-title="copyPassword" aria-label="Copy password">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 16H6C4.89543 16 4 15.1046 4 14V6C4 4.89543 4.89543 4 6 4H14C15.1046 4 16 4.89543 16 6V8M18 10H10C8.89543 10 8 10.89543 8 12V20C8 21.1046 8.89543 22 10 22H18C19.1046 22 20 21.1046 20 20V12C20 10.89543 19.1046 10 18 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button id="togglePasswordButton" class="password-action-btn" data-i18n-title="togglePassword" aria-label="Show/Hide password">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="eye-off-icon"
-                style="display: none"
-              >
-                <path
-                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                ></path>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-off-icon" style="display: none">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
                 <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
-            </button>
-            <button id="copyButton" title="Copy password" data-i18n-title="copyPassword">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
               </svg>
             </button>
           </div>
@@ -99,10 +68,26 @@
         <div class="strength-meter">
           <div class="strength-label">
             <span data-i18n="passwordStrength">Password Strength</span>
-            <span id="strengthText" class="weak" data-i18n="weak">Weak</span>
+            <div class="strength-status">
+              <span id="strengthText"></span>
+              <button id="strengthDetailsToggle" class="strength-details-toggle">
+                <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
+            </div>
           </div>
           <div class="meter">
             <div id="strengthIndicator"></div>
+          </div>
+        </div>
+
+        <div id="strengthDetailsContent" class="strength-details-content" style="display: none;">
+          <div id="strengthWarnings" class="strength-feedback-section">
+            <h4 data-i18n="strengthWarnings">Warnings</h4>
+            <ul></ul>
+          </div>
+          <div id="strengthSuggestions" class="strength-feedback-section">
+            <h4 data-i18n="strengthSuggestions">Suggestions</h4>
+            <ul></ul>
           </div>
         </div>
 
@@ -110,7 +95,7 @@
 
         <div class="tabs">
           <div class="tab-header">
-            <button class="tab-button active" data-tab="settings">
+            <button class="tab-button" data-tab="settings">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -148,169 +133,434 @@
             </button>
           </div>
 
-          <div id="settings" class="tab-content active">
-            <div class="option length-option">
-              <label for="passwordLength">
-                <span data-i18n="passwordLength">Password Length</span>
-                <span id="lengthValue">16</span>
-              </label>
-              <input type="range" id="passwordLength" min="4" max="64" value="16" class="slider" />
-            </div>
-
-            <div class="options-group">
-              <h3 data-i18n="charTypes">Character Types</h3>
-              <div class="option">
-                <label for="lowercase">
-                  <span data-i18n="lowercase">Lowercase Letters (a-z)</span>
-                  <div class="toggle-switch">
-                    <input type="checkbox" id="lowercase" checked />
-                    <span class="toggle-slider"></span>
-                  </div>
+          <div id="settings" class="tab-content">
+            <div id="settingsContent">
+              <div class="option length-option">
+                <label for="passwordLength">
+                  <span data-i18n="passwordLength">Password Length</span>
+                  <span id="lengthValue">16</span>
                 </label>
+                <input type="range" id="passwordLength" min="4" max="64" value="16" class="slider" />
               </div>
 
-              <div class="option">
-                <label for="uppercase">
-                  <span data-i18n="uppercase">Uppercase Letters (A-Z)</span>
-                  <div class="toggle-switch">
-                    <input type="checkbox" id="uppercase" checked />
-                    <span class="toggle-slider"></span>
-                  </div>
-                </label>
+              <div class="options-group">
+                <h3 data-i18n="charTypes">Character Types</h3>
+                <div class="option">
+                  <label for="lowercase">
+                    <span data-i18n="lowercase">Lowercase Letters (a-z)</span>
+                    <div class="toggle-switch">
+                      <input type="checkbox" id="lowercase" checked />
+                      <span class="toggle-slider"></span>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="option">
+                  <label for="uppercase">
+                    <span data-i18n="uppercase">Uppercase Letters (A-Z)</span>
+                    <div class="toggle-switch">
+                      <input type="checkbox" id="uppercase" checked />
+                      <span class="toggle-slider"></span>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="option">
+                  <label for="numbers">
+                    <span data-i18n="numbers">Numbers (0-9)</span>
+                    <div class="toggle-switch">
+                      <input type="checkbox" id="numbers" checked />
+                      <span class="toggle-slider"></span>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="option">
+                  <label for="special">
+                    <span data-i18n="special">Special Characters (!@#$%^&*)</span>
+                    <div class="toggle-switch">
+                      <input type="checkbox" id="special" checked />
+                      <span class="toggle-slider"></span>
+                    </div>
+                  </label>
+                </div>
               </div>
 
-              <div class="option">
-                <label for="numbers">
-                  <span data-i18n="numbers">Numbers (0-9)</span>
-                  <div class="toggle-switch">
-                    <input type="checkbox" id="numbers" checked />
-                    <span class="toggle-slider"></span>
-                  </div>
-                </label>
+              <div class="options-group">
+                <h3 data-i18n="exclusions">Exclusions</h3>
+                <div class="option">
+                  <label for="excludeSimilar">
+                    <span data-i18n="excludeSimilar">Similar characters (i, l, 1, L, o, 0, O)</span>
+                    <div class="toggle-switch">
+                      <input type="checkbox" id="excludeSimilar" />
+                      <span class="toggle-slider"></span>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="option">
+                  <label for="excludeAmbiguous">
+                    <span data-i18n="excludeAmbiguous">Ambiguous characters ({ } [ ] / \ ' " ` ~)</span>
+                    <div class="toggle-switch">
+                      <input type="checkbox" id="excludeAmbiguous" />
+                      <span class="toggle-slider"></span>
+                    </div>
+                  </label>
+                </div>
               </div>
 
-              <div class="option">
-                <label for="special">
-                  <span data-i18n="special">Special Characters (!@#$%^&*)</span>
+              <!-- Mnemonic Password Section -->
+              <div class="password-template-section" id="mnemonicSection">
+                <div class="form-group">
+                  <label for="mnemonicToggle" style="font-weight: 600;" data-i18n="mnemonicPassword">Mnemonic password</label>
                   <div class="toggle-switch">
-                    <input type="checkbox" id="special" checked />
+                    <input type="checkbox" id="mnemonicToggle" />
                     <span class="toggle-slider"></span>
                   </div>
-                </label>
+                </div>
+                <div id="mnemonicOptions" style="display: none; margin-top: 10px;">
+                  <div class="form-group form-group-vertical-slider">
+                    <label for="mnemonicWordCount">
+                      <span data-i18n="mnemonicNumberOfWords">Number of words</span>: <span id="mnemonicWordCountValue">4</span>
+                    </label>
+                    <input type="range" id="mnemonicWordCount" min="1" max="8" value="4" class="slider" />
+                  </div>
+                  <div class="form-group form-row-horizontal">
+                    <label for="mnemonicSeparator" class="form-label" data-i18n="mnemonicSeparatorLabel">Separator:</label>
+                    <select id="mnemonicSeparator" class="form-control">
+                      <option value=" " data-i18n="mnemonicSeparatorSpace">Space</option>
+                      <option value="-" data-i18n="mnemonicSeparatorDash">Dash (-)</option>
+                      <option value="_" data-i18n="mnemonicSeparatorUnderscore">Underscore (_)</option>
+                      <option value="." data-i18n="mnemonicSeparatorDot">Dot (.)</option>
+                    </select>
+                  </div>
+                  <div class="form-group form-row-horizontal">
+                    <label for="mnemonicCase" class="form-label" data-i18n="mnemonicCapitalizationLabel">Word capitalization:</label>
+                    <select id="mnemonicCase" class="form-control">
+                      <option value="lower" data-i18n="mnemonicCapitalizationLower">lowercase</option>
+                      <option value="upper" data-i18n="mnemonicCapitalizationUpper">UPPERCASE</option>
+                      <option value="capitalized" data-i18n="mnemonicCapitalizationCapitalized">Capitalized</option>
+                      <option value="random" data-i18n="mnemonicCapitalizationRandom">Random capitalization</option>
+                    </select>
+                  </div>
+                  <div class="form-group form-group-vertical">
+                    <div class="form-row-horizontal">
+                      <label for="mnemonicCustomWordInput" class="form-label" data-i18n="mnemonicCustomWordListLabel">Custom word list:</label>
+                      <input type="text" id="mnemonicCustomWordInput" class="form-control" data-i18n-placeholder="mnemonicCustomWordPlaceholder" placeholder="Type a word and press Enter">
+                    </div>
+                    <small style="color: var(--color-text-light); font-size: 12px;" data-i18n="mnemonicCustomWordAddHint">Press Enter to add a word.</small>
+                    <div id="mnemonicCustomWordsList" class="custom-words-list" style="margin-top: 6px;"></div>
+                  </div>
+                  <div class="option length-option">
+                    <label for="mnemonicMinWordLen">
+                      <span data-i18n="mnemonicMinWordLenLabel">Min word length:</span> <span id="mnemonicMinWordLenValue">2</span>
+                    </label>
+                    <input type="range" id="mnemonicMinWordLen" min="3" max="12" value="3" class="slider" />
+                  </div>
+                  <div class="option length-option">
+                    <label for="mnemonicMaxWordLen">
+                      <span data-i18n="mnemonicMaxWordLenLabel">Max word length:</span> <span id="mnemonicMaxWordLenValue">16</span>
+                    </label>
+                    <input type="range" id="mnemonicMaxWordLen" min="3" max="12" value="16" class="slider" />
+                  </div>
+                  <div class="form-group form-row-horizontal">
+                    <label for="mnemonicPrefix" class="form-label" data-i18n="mnemonicPrefixLabel">Prefix (optional):</label>
+                    <input type="text" id="mnemonicPrefix" class="form-control" data-i18n-placeholder="mnemonicPrefixPlaceholder" placeholder="Prefix">
+                  </div>
+                  <div class="form-group form-row-horizontal">
+                    <label for="mnemonicSuffix" class="form-label" data-i18n="mnemonicSuffixLabel">Suffix (optional):</label>
+                    <input type="text" id="mnemonicSuffix" class="form-control" data-i18n-placeholder="mnemonicSuffixPlaceholder" placeholder="Suffix">
+                  </div>
+                  <div class="option">
+                    <label for="mnemonicUseOnlyCustom">
+                      <span data-i18n="mnemonicUseOnlyCustomLabel">Use only custom words</span>
+                      <div class="toggle-switch">
+                        <input type="checkbox" id="mnemonicUseOnlyCustom" />
+                        <span class="toggle-slider"></span>
+                      </div>
+                    </label>
+                  </div>
+                  <div class="option">
+                    <label for="mnemonicNoRepeats">
+                      <span data-i18n="mnemonicNoRepeatsLabel">No repeated words</span>
+                      <div class="toggle-switch">
+                        <input type="checkbox" id="mnemonicNoRepeats" />
+                        <span class="toggle-slider"></span>
+                      </div>
+                    </label>
+                  </div>
+                  <div class="option">
+                    <label for="mnemonicLeet">
+                      <span data-i18n="mnemonicLeetLabel">Leet substitutions (a→@, o→0, etc.)</span>
+                      <div class="toggle-switch">
+                        <input type="checkbox" id="mnemonicLeet" />
+                        <span class="toggle-slider"></span>
+                      </div>
+                    </label>
+                  </div>
+                  <div class="option">
+                    <label for="mnemonicShuffle">
+                      <span data-i18n="mnemonicShuffleLabel">Shuffle word order</span>
+                      <div class="toggle-switch">
+                        <input type="checkbox" id="mnemonicShuffle" />
+                        <span class="toggle-slider"></span>
+                      </div>
+                    </label>
+                  </div>
+                  <div class="option">
+                    <label for="mnemonicInsertBetween">
+                      <span data-i18n="mnemonicInsertBetweenLabel">Insert number/symbol between words</span>
+                      <div class="toggle-switch">
+                        <input type="checkbox" id="mnemonicInsertBetween" />
+                        <span class="toggle-slider"></span>
+                      </div>
+                    </label>
+                  </div>
+                  <div class="option">
+                    <label for="mnemonicInsertInside">
+                      <span data-i18n="mnemonicInsertInsideLabel">Insert number/symbol inside words</span>
+                      <div class="toggle-switch">
+                        <input type="checkbox" id="mnemonicInsertInside" />
+                        <span class="toggle-slider"></span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div class="options-group">
-              <h3 data-i18n="exclusions">Exclusions</h3>
-              <div class="option">
-                <label for="excludeSimilar">
-                  <span data-i18n="excludeSimilar">Similar characters (i, l, 1, L, o, 0, O)</span>
+              <!-- Password Template Section (styled like Master Password) -->
+              <div class="password-template-section">
+                <div class="form-group">
+                  <label for="enablePopularTemplates" style="font-weight: 600;" data-i18n="passwordTemplateTitle">Password Template</label>
                   <div class="toggle-switch">
-                    <input type="checkbox" id="excludeSimilar" />
+                    <input type="checkbox" id="enablePopularTemplates" />
                     <span class="toggle-slider"></span>
                   </div>
-                </label>
+                </div>
+                <div id="passwordTemplateOptions" style="display:none;">
+                  <div id="popularTemplatesSection">
+                    <div class="form-group">
+                      <label for="templateDropdown" style="font-weight: 600; margin-bottom: 6px;" data-i18n="popularTemplatesLabel">Popular Templates</label>
+                      <select id="templateDropdown" class="form-control" style="margin-bottom: 10px; display: block; width: 100%;">
+                        <option value="" data-i18n="chooseTemplate">Choose a template...</option>
+                        <option value="LLL-###-@@@">LLL-###-@@@</option>
+                        <option value="Ull#@#">Ull#@#</option>
+                        <option value="****">****</option>
+                        <option value="LL-ll-##">LL-ll-##</option>
+                        <option value="L#L#L#">L#L#L#</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <input type="text" id="passwordTemplate" class="form-control" data-i18n-placeholder="templatePlaceholder" placeholder="LLL-###-@@@">
+                  </div>
+                  <div class="form-group">
+                    <a href="#" id="templateHelpToggle" style="font-size: 12px; color: var(--color-primary); text-decoration: underline; cursor: pointer; display: inline-block; margin-top: 4px;" data-i18n="showInstructions">Show instructions</a>
+                    <div id="templateHelpBlock" style="display: none; background: var(--color-bg-secondary); border-radius: 8px; border: 1px solid var(--color-border); padding: 12px; margin-top: 8px; font-size: 13px; color: var(--color-text-secondary);">
+                      <b data-i18n="templateHelpListTitle">How to use templates:</b><br>
+                      <ul style="margin: 8px 0 8px 18px; padding: 0;">
+                        <li data-i18n="templateHelpL"><b>L</b> — any letter (upper or lower, if enabled)</li>
+                        <li data-i18n="templateHelpU"><b>U</b> — uppercase letter</li>
+                        <li data-i18n="templateHelpl"><b>l</b> — lowercase letter</li>
+                        <li data-i18n="templateHelpDigit"><b>#</b> — digit</li>
+                        <li data-i18n="templateHelpSpecial"><b>@</b> — special character</li>
+                        <li data-i18n="templateHelpAny"><b>*</b> — any allowed character</li>
+                        <li data-i18n="templateHelpLiteral">Any other character is inserted as-is (e.g., <b>-</b>, <b>_</b>)</li>
+                      </ul>
+                      <b data-i18n="templateHelpExamplesTitle">Examples:</b><br>
+                      <ul style="margin: 8px 0 0 18px; padding: 0;">
+                        <li data-i18n="templateHelpExample1"><b>LLL-###-@@@</b> — 3 letters, 3 digits, 3 special characters, separated by dashes</li>
+                        <li data-i18n="templateHelpExample2"><b>Ull#@#</b> — 1 uppercase, 2 lowercase, 1 digit, 1 special, 1 digit</li>
+                        <li data-i18n="templateHelpExample3"><b>****</b> — 4 random allowed characters</li>
+                      </ul>
+                      <span style="color: var(--color-text-light); font-size: 12px;" data-i18n="templateHelpHint">You can edit the template after selecting it. Leave the field empty to use standard password generation.</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div class="option">
-                <label for="excludeAmbiguous">
-                  <span data-i18n="excludeAmbiguous">Ambiguous characters ({ } [ ] / \ ' " ` ~)</span>
-                  <div class="toggle-switch">
-                    <input type="checkbox" id="excludeAmbiguous" />
+              <!-- Encryption Settings Group -->
+              <div id="encryptionSettingsSection" class="encryption-settings-section">
+                <h4 data-i18n="encryptionSettings">Encryption Settings</h4>
+                <div class="encryption-enable-toggle-option option">
+                  <label for="enableEncryptionToggle" data-i18n="enableHistoryEncryption">Enable History Encryption</label>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="enableEncryptionToggle" />
                     <span class="toggle-slider"></span>
-                  </div>
-                </label>
+                  </label>
+                </div>
               </div>
+
+              <div id="masterPasswordSetupSection" class="master-password-setup-section" style="display: none;"> <!-- Shown when enabling encryption or changing password -->
+                <div id="currentMasterPasswordGroup" class="form-group" style="display: none;">
+                  <label for="currentMasterPasswordInput" data-i18n="currentMasterPasswordLabel">Current Master Password</label>
+                  <input type="password" id="currentMasterPasswordInput" class="form-control" data-i18n-placeholder="currentMasterPasswordPlaceholder" placeholder="Enter current master password" />
+                  <small id="currentMasterPasswordError" class="error-message"></small>
+                </div>
+                <div id="newMasterPasswordGroup" class="form-group">
+                  <label for="newMasterPasswordInput" data-i18n="masterPasswordLabel">Master Password</label> <!-- Label will be updated via JS -->
+                  <input type="password" id="newMasterPasswordInput" class="form-control" data-i18n-placeholder="masterPasswordPlaceholder" />
+                  <small id="masterPasswordStrengthError" class="error-message" style="display: none;"></small> 
+                </div>
+                <div id="confirmNewMasterPasswordGroup" class="form-group">
+                  <label for="confirmNewMasterPasswordInput" data-i18n="confirmMasterPasswordLabel">Confirm Master Password</label> <!-- Label will be updated via JS -->
+                  <input type="password" id="confirmNewMasterPasswordInput" class="form-control" data-i18n-placeholder="confirmMasterPasswordPlaceholder" />
+                  <small id="masterPasswordMismatchError" class="error-message" style="display: none;" data-i18n="masterPasswordMismatch">Passwords do not match.</small>
+                </div>
+                <p id="masterPasswordRequirements" class="form-text-secondary" data-i18n="masterPasswordRequirements" style="font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-bottom: var(--space-md);">Minimum 8 characters, 1 uppercase, 1 lowercase, 1 digit.</p>
+                <button id="setMasterPasswordBtn" class="btn btn-primary btn-block" data-i18n="setMasterPasswordBtn">Set Master Password</button> <!-- Text will be updated via JS -->
+                <p id="masterPasswordNote" data-i18n="masterPasswordNote" style="display: none;">This password is used to encrypt and decrypt your password history...</p>
+              </div>
+              
+              <button id="changeMasterPasswordBtn" class="btn btn-secondary" data-i18n="changeMasterPasswordBtn" style="display: none; margin-top: 10px; margin-bottom: 10px;">Change Master Password</button> 
+
+              <!-- Import/Export Settings -->
+              <div id="importExportSection" class="import-export-section">
+                <h4 data-i18n="importExportSettings">Import/Export Settings</h4>
+                <div class="import-export-actions">
+                  <input type="file" id="importSettingsInput" style="display: none;" accept=".json">
+                  <button id="importSettingsBtn" class="btn btn-secondary" data-i18n="importSettings">Import Settings</button>
+                  <button id="exportSettingsBtn" class="btn btn-secondary" data-i18n="exportSettings">Export Settings</button>
+                </div>
+              </div>
+
+              <div id="masterPasswordPromptSection" class="master-password-prompt-section" style="display: none;">
+                <h4 data-i18n="masterPasswordPrompt">Please enter your Master Password to view encrypted history:</h4>
+                <div class="form-group">
+                    <label for="promptedMasterPasswordInput" data-i18n="masterPasswordPlaceholderPrompt">Master Password</label>
+                    <input type="password" id="promptedMasterPasswordInput" class="form-control" data-i18n-placeholder="masterPasswordPlaceholderPrompt"/>
+                 </div>
+                <button id="submitPromptedMasterPasswordBtn" class="btn btn-primary btn-block" data-i18n="submitMasterPasswordBtn">Unlock History</button>
+              </div>
+
             </div>
           </div>
 
           <div id="history" class="tab-content">
-            <div class="history-header">
-              <h3 data-i18n="recentPasswords">Recent Passwords</h3>
-              <div class="history-actions">
-                <button id="toggleHistoryVisibilityButton" title="Toggle password visibility" data-i18n-title="toggleHistoryVisibility">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="eye-icon"
-                  >
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="eye-off-icon"
-                    style="display: none"
-                  >
-                    <path
-                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                    ></path>
-                    <line x1="1" y1="1" x2="23" y2="23"></line>
-                  </svg>
-                </button>
-                <button id="clearHistoryButton">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path
-                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                    ></path>
-                  </svg>
-                  <span data-i18n="clearAll">Clear All</span>
-                </button>
+            <div id="historyContent">
+              <div class="history-header">
+                <h3 data-i18n="recentPasswords">Recent Passwords</h3>
+                <div class="history-actions">
+                  <button id="toggleHistoryVisibilityButton" title="Toggle password visibility" data-i18n-title="toggleHistoryVisibility">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="eye-icon"
+                    >
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="eye-off-icon"
+                      style="display: none"
+                    >
+                      <path
+                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                      ></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  </button>
+                  <input type="file" id="importPasswordsInput" style="display: none;" accept=".json">
+                  <button id="importPasswordsBtn" data-i18n-title="importPasswordsTitle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                  </button>
+                  <button id="exportPasswordsBtn" data-i18n-title="exportPasswordsTitle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                  </button>
+                  <button id="clearHistoryButton" data-i18n-title="clearHistoryTitle">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path
+                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                      ></path>
+                    </svg>
+                  </button>
+                </div>
               </div>
-            </div>
-            <div id="historyList" class="history-list">
-              <div class="empty-state">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="32"
-                  height="32"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <p data-i18n="noHistory">No password history yet</p>
+              <div class="history-filter" style="margin-bottom: 8px">
+                <input
+                  type="search"
+                  id="tagFilterInput"
+                  class="form-control"
+                  data-i18n-placeholder="filterByTag"
+                  placeholder="Filter by tag..."
+                  style="width: 100%"
+                />
+              </div>
+              <div id="historyContainer" class="history-container">
+                <div id="historyList" class="history-list">
+                  <div class="empty-state">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="32"
+                      height="32"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <p data-i18n="noHistory">No password history yet</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </main>
 
-      <div id="copyMessage" class="copy-message" data-i18n="passwordCopied">Password copied to clipboard!</div>
     </div>
 
+    <div id="confirmDialog" class="confirm-dialog">
+      <div class="confirm-dialog-content">
+        <p id="confirmMessage"></p>
+        <div class="confirm-buttons">
+          <button id="confirmYes"></button>
+          <button id="confirmNo"></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toastContainer"></div>
     <script type="module" src="popup.js"></script>
   </body>
 </html>
